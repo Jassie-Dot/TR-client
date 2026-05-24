@@ -295,7 +295,7 @@ const setupContact = ({ brand, services }) => {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    note.textContent = "Submitting your inquiry...";
+    note.textContent = "Sending...";
     note.className = "theme-muted mt-4 min-h-6 font-bold";
     whatsappResult.classList.add("hidden");
 
@@ -313,13 +313,13 @@ const setupContact = ({ brand, services }) => {
         throw new Error(result.message || "Unable to submit inquiry.");
       }
 
-      note.textContent = "Inquiry saved. You can continue instantly on WhatsApp.";
+      note.textContent = "Saved. Continue on WhatsApp.";
       note.className = "mt-4 min-h-6 font-bold text-signal-green";
       whatsappResult.href = result.whatsappUrl;
       whatsappResult.classList.remove("hidden");
       form.reset();
     } catch (error) {
-      note.textContent = error.message || "Something went wrong. Please try again.";
+      note.textContent = error.message || "Please try again.";
       note.className = "mt-4 min-h-6 font-bold text-red-600";
     }
   });

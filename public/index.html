@@ -24,6 +24,7 @@
       }
     </script>
     <link rel="stylesheet" href="/styles.css?v=premium-10" />
+    <link rel="stylesheet" href="/hero-redesign.css?v=creative-2" />
   </head>
   <body class="theme-body font-body selection:bg-signal-amber selection:text-coal-950">
     <div class="fixed left-0 top-0 z-[90] h-1 w-0 bg-brand-metal shadow-glow" data-scroll-progress></div>
@@ -93,16 +94,8 @@
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[var(--page-bg)] to-transparent"></div>
         <div class="hero-angle" aria-hidden="true"></div>
 
-        <div class="relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8">
-          <aside class="hidden lg:col-span-1 lg:flex lg:flex-col lg:justify-end">
-            <div class="rail-card">
-              <span>TR</span>
-              <span>DELHI NCR</span>
-              <span>OPS</span>
-            </div>
-          </aside>
-
-          <div class="reveal flex flex-col justify-center lg:col-span-7">
+        <div class="hero-layout relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:px-8">
+          <div class="hero-copy-panel reveal flex flex-col justify-center">
             <p class="eyebrow" data-hero-eyebrow>Solar. Industrial. Manpower.</p>
             <h1 class="hero-title mt-5 font-display font-black leading-[1.02] tracking-normal" data-hero-title>
               Site operations, refined.
@@ -110,43 +103,42 @@
             <p class="hero-copy mt-6 max-w-3xl text-base font-medium leading-8 sm:text-lg" data-hero-text>
               Premium field teams for cleaner, safer sites.
             </p>
-            <div class="mt-8 flex flex-wrap gap-3">
+            <div class="hero-cta-row mt-8 flex flex-wrap gap-3">
               <a class="btn-primary" href="#contact">Request Premium Quote</a>
               <a class="btn-secondary" href="#services">Explore Services</a>
             </div>
             <div class="mt-7 flex flex-wrap gap-3" data-hero-chips></div>
           </div>
 
-          <div class="reveal relative min-h-[430px] sm:min-h-[500px] lg:col-span-4 lg:min-h-0">
-            <div class="hero-photo-card">
-              <img src="/assets/images/industrial-maintenance.png" alt="Industrial maintenance worker inspecting plant equipment" />
-              <div class="hero-photo-label">
-                <span>Site presence</span>
-                <strong>Solar. Plant. Power. Crew.</strong>
+          <div class="hero-showcase reveal">
+            <div class="hero-premium-stage">
+              <div class="hero-lens-frame">
+                <img src="/assets/images/industrial-maintenance.png" alt="Industrial maintenance worker inspecting plant equipment" />
+                <span class="hero-scan-line" aria-hidden="true"></span>
               </div>
-            </div>
 
-            <aside class="hero-command-card">
-              <div class="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <p class="text-xs font-black uppercase tracking-[.16em] text-signal-amber">Command view</p>
-                  <h2 class="mt-1 font-display text-xl font-extrabold">Live site capability</h2>
-                </div>
-                <span class="flex items-center gap-2 rounded-full border border-signal-green/30 bg-signal-green/10 px-3 py-2 text-sm font-black text-signal-green">
-                  <span class="h-2.5 w-2.5 rounded-full bg-signal-green shadow-[0_0_18px_rgba(26,166,111,.8)]"></span>
-                  Ready
+              <aside class="hero-status-card">
+                <p>TR Field Ops</p>
+                <h2>Site crews with a cleaner handover.</h2>
+                <span>
+                  Solar, plant, power, and manpower support coordinated for active sites.
                 </span>
-              </div>
-              <div class="grid grid-cols-2 gap-3" data-hero-metrics></div>
-            </aside>
+                <div class="hero-status-row">
+                  <strong><i></i>Live response</strong>
+                  <strong>Delhi NCR</strong>
+                </div>
+              </aside>
 
-            <div class="hero-workflow">
-              <p class="text-xs font-black uppercase tracking-[.16em] text-signal-cyan">Field workflow</p>
-              <ol class="theme-muted mt-4 grid gap-3 text-sm font-bold">
-                <li><span>Scope check</span><strong>01</strong></li>
-                <li><span>Team deployment</span><strong>02</strong></li>
-                <li><span>Site completion</span><strong>03</strong></li>
-              </ol>
+              <div class="hero-route-card">
+                <p>Site path</p>
+                <ol>
+                  <li><strong>01</strong><span>Audit</span></li>
+                  <li><strong>02</strong><span>Deploy</span></li>
+                  <li><strong>03</strong><span>Handover</span></li>
+                </ol>
+              </div>
+
+              <div class="hero-mini-metrics" data-hero-metrics></div>
             </div>
           </div>
         </div>

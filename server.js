@@ -164,7 +164,7 @@ const serveStatic = async (req, res, urlPath) => {
     const ext = path.extname(filePath).toLowerCase();
     send(res, 200, content, {
       "Content-Type": mimeTypes.get(ext) || "application/octet-stream",
-      "Cache-Control": ext === ".html" ? "no-store" : "public, max-age=86400"
+      "Cache-Control": "no-store"
     });
   } catch {
     if (!path.extname(urlPath)) {

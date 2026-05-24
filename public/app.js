@@ -28,6 +28,35 @@ const setProgress = () => {
   if (toTop) toTop.classList.toggle("hidden", window.scrollY < 640);
 };
 
+const setupTheme = () => {
+  const toggles = $$("[data-theme-toggle]");
+  const labels = $$("[data-theme-label]");
+
+  const applyTheme = (theme) => {
+    document.documentElement.dataset.theme = theme;
+    labels.forEach((label) => {
+      label.textContent = theme === "dark" ? "Light" : "Dark";
+    });
+
+    try {
+      localStorage.setItem("tr-theme", theme);
+    } catch {
+      // Theme still works for this visit if storage is unavailable.
+    }
+
+    window.dispatchEvent(new CustomEvent("tr-theme-change", { detail: { theme } }));
+  };
+
+  applyTheme(document.documentElement.dataset.theme || "dark");
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+  });
+};
+
 const setupMenu = () => {
   const toggle = $("[data-menu-toggle]");
   const nav = $("[data-mobile-nav]");
@@ -89,9 +118,9 @@ const renderHero = ({ brand, hero, metrics }) => {
   $("[data-hero-metrics]").innerHTML = metrics
     .map(
       (metric) => `
-        <div class="rounded-lg border border-white/10 bg-white/10 p-4">
+        <div class="metric-card rounded-lg p-4">
           <strong class="block font-display text-3xl font-black text-signal-amber">${escapeHtml(metric.value)}</strong>
-          <span class="mt-2 block text-sm font-bold leading-6 text-white/70">${escapeHtml(metric.label)}</span>
+          <span class="metric-label mt-2 block text-sm font-bold leading-6">${escapeHtml(metric.label)}</span>
         </div>
       `
     )
@@ -100,9 +129,9 @@ const renderHero = ({ brand, hero, metrics }) => {
   $("[data-metric-strip]").innerHTML = metrics
     .map(
       (metric) => `
-        <div class="border-b border-coal-950/10 p-6 md:border-b-0 md:border-r last:border-r-0">
+        <div class="metric-cell border-b p-6 md:border-b-0 md:border-r last:border-r-0">
           <strong class="block font-display text-3xl font-black">${escapeHtml(metric.value)}</strong>
-          <span class="mt-2 block text-sm font-black uppercase tracking-[.12em] text-coal-950/50">${escapeHtml(metric.label)}</span>
+          <span class="metric-label mt-2 block text-sm font-black uppercase tracking-[.12em]">${escapeHtml(metric.label)}</span>
         </div>
       `
     )
@@ -136,10 +165,10 @@ const renderServices = (services) => {
           </div>
           <div class="${isFeatured ? "p-6 sm:p-8" : "p-5"}">
             <span class="text-xs font-black uppercase tracking-[.15em] text-signal-orange">${escapeHtml(service.category)}</span>
-            <h3 class="mt-3 font-display ${isFeatured ? "text-4xl" : "text-2xl"} font-black tracking-normal">${escapeHtml(service.title)}</h3>
-            <p class="mt-3 ${isFeatured ? "text-base" : "text-sm"} font-medium leading-7 text-coal-950/60">${escapeHtml(service.summary)}</p>
+            <h3 class="card-title mt-3 font-display ${isFeatured ? "text-4xl" : "text-2xl"} font-black tracking-normal">${escapeHtml(service.title)}</h3>
+            <p class="card-copy mt-3 ${isFeatured ? "text-base" : "text-sm"} font-medium leading-7">${escapeHtml(service.summary)}</p>
             <ul class="mt-5 grid gap-2">
-              ${service.bullets.map((bullet) => `<li class="flex gap-3 text-sm font-black text-coal-950/75"><span class="mt-2 h-2 w-2 rounded-sm bg-signal-green"></span>${escapeHtml(bullet)}</li>`).join("")}
+              ${service.bullets.map((bullet) => `<li class="card-bullet flex gap-3 text-sm font-black"><span class="mt-2 h-2 w-2 rounded-sm bg-signal-green"></span>${escapeHtml(bullet)}</li>`).join("")}
             </ul>
           </div>
         </article>
@@ -191,12 +220,12 @@ const renderTestimonials = (testimonials) => {
       (item, index) => `
         <article class="${index === 0 ? "review-feature" : "review-card"} reveal">
           <div class="text-signal-amber">★★★★★</div>
-          <p class="mt-4 ${index === 0 ? "text-3xl leading-10" : "text-xl leading-8"} font-bold text-white/80">"${escapeHtml(item.quote)}"</p>
+          <p class="review-quote mt-4 ${index === 0 ? "text-3xl leading-10" : "text-xl leading-8"} font-bold">"${escapeHtml(item.quote)}"</p>
           <div class="mt-5 flex items-center gap-3">
             <span class="grid h-12 w-12 place-items-center rounded-lg bg-brand-metal font-display font-black text-coal-950">${escapeHtml(item.name[0])}</span>
             <div>
               <strong class="block">${escapeHtml(item.name)}</strong>
-              <span class="text-sm font-bold text-white/50">${escapeHtml(item.role)}</span>
+              <span class="review-role text-sm font-bold">${escapeHtml(item.role)}</span>
             </div>
           </div>
         </article>
@@ -267,7 +296,7 @@ const setupContact = ({ brand, services }) => {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     note.textContent = "Submitting your inquiry...";
-    note.className = "mt-4 min-h-6 font-bold text-coal-950/70";
+    note.className = "theme-muted mt-4 min-h-6 font-bold";
     whatsappResult.classList.add("hidden");
 
     const payload = Object.fromEntries(new FormData(form).entries());
@@ -318,6 +347,7 @@ const loadSite = async () => {
 };
 
 const boot = async () => {
+  setupTheme();
   setupMenu();
   window.addEventListener("scroll", setProgress, { passive: true });
   $("[data-to-top]").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));

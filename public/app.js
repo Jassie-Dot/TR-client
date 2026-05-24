@@ -110,39 +110,57 @@ const renderHero = ({ brand, hero, metrics }) => {
 };
 
 const renderServices = (services) => {
+  const indexRoot = $("[data-service-index]");
+  if (indexRoot) {
+    indexRoot.innerHTML = services
+      .map(
+        (service, index) => `
+          <a class="service-index-link" href="#${escapeHtml(service.id)}">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <strong>${escapeHtml(service.title)}</strong>
+          </a>
+        `
+      )
+      .join("");
+  }
+
   $("[data-services]").innerHTML = services
-    .map(
-      (service) => `
-        <article class="service-card reveal group">
-          <div class="relative h-64 overflow-hidden rounded-lg">
-            <img class="h-full w-full object-cover transition duration-700 group-hover:scale-105" src="${service.image}" alt="${escapeHtml(service.title)}" loading="lazy" />
-            <div class="absolute inset-0 bg-gradient-to-t from-coal-950/75 via-coal-950/10 to-transparent"></div>
+    .map((service, index) => {
+      const isFeatured = index === 0;
+      return `
+        <article class="${isFeatured ? "service-feature-card md:col-span-2 md:row-span-2" : "service-mini-card"} reveal group" id="${escapeHtml(service.id)}">
+          <div class="${isFeatured ? "service-feature-media" : "service-mini-media"}">
+            <img src="${service.image}" alt="${escapeHtml(service.title)}" loading="lazy" />
+            <div class="absolute inset-0 bg-gradient-to-t from-coal-950/80 via-coal-950/20 to-transparent"></div>
             <span class="absolute left-4 top-4 rounded-md bg-white/90 px-3 py-2 font-display text-xs font-black text-coal-950">${iconFor(service.category)}</span>
           </div>
-          <div class="p-5">
+          <div class="${isFeatured ? "p-6 sm:p-8" : "p-5"}">
             <span class="text-xs font-black uppercase tracking-[.15em] text-signal-orange">${escapeHtml(service.category)}</span>
-            <h3 class="mt-3 font-display text-2xl font-black tracking-normal">${escapeHtml(service.title)}</h3>
-            <p class="mt-3 text-sm font-medium leading-7 text-coal-950/60">${escapeHtml(service.summary)}</p>
+            <h3 class="mt-3 font-display ${isFeatured ? "text-4xl" : "text-2xl"} font-black tracking-normal">${escapeHtml(service.title)}</h3>
+            <p class="mt-3 ${isFeatured ? "text-base" : "text-sm"} font-medium leading-7 text-coal-950/60">${escapeHtml(service.summary)}</p>
             <ul class="mt-5 grid gap-2">
               ${service.bullets.map((bullet) => `<li class="flex gap-3 text-sm font-black text-coal-950/75"><span class="mt-2 h-2 w-2 rounded-sm bg-signal-green"></span>${escapeHtml(bullet)}</li>`).join("")}
             </ul>
           </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 };
 
 const renderProjects = (projects) => {
   $("[data-projects]").innerHTML = projects
     .map(
-      (project) => `
-        <article class="project-card reveal group">
-          <img class="h-72 w-full object-cover transition duration-700 group-hover:scale-105" src="${project.image}" alt="${escapeHtml(project.title)}" loading="lazy" />
-          <div class="p-6">
-            <span class="text-xs font-black uppercase tracking-[.15em] text-signal-amber">${escapeHtml(project.type)}</span>
-            <h3 class="mt-3 font-display text-2xl font-black tracking-normal">${escapeHtml(project.title)}</h3>
-            <p class="mt-3 font-medium leading-7 text-white/60">${escapeHtml(project.impact)}</p>
+      (project, index) => `
+        <article class="case-card reveal group">
+          <div class="case-number">${String(index + 1).padStart(2, "0")}</div>
+          <div class="case-image">
+            <img src="${project.image}" alt="${escapeHtml(project.title)}" loading="lazy" />
+          </div>
+          <div class="case-copy">
+            <span>${escapeHtml(project.type)}</span>
+            <h3>${escapeHtml(project.title)}</h3>
+            <p>${escapeHtml(project.impact)}</p>
           </div>
         </article>
       `
@@ -153,11 +171,14 @@ const renderProjects = (projects) => {
 const renderProcess = (process) => {
   $("[data-process]").innerHTML = process
     .map(
-      (item) => `
-        <article class="process-card reveal">
-          <span class="font-display text-5xl font-black text-signal-orange">${escapeHtml(item.step)}</span>
-          <h3 class="mt-16 font-display text-2xl font-black tracking-normal">${escapeHtml(item.title)}</h3>
-          <p class="mt-4 font-medium leading-7 text-coal-950/60">${escapeHtml(item.text)}</p>
+      (item, index) => `
+        <article class="dispatch-card reveal">
+          <span class="dispatch-step">${escapeHtml(item.step)}</span>
+          <div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p>${escapeHtml(item.text)}</p>
+          </div>
+          ${index < process.length - 1 ? '<span class="dispatch-connector" aria-hidden="true"></span>' : ""}
         </article>
       `
     )
@@ -167,10 +188,10 @@ const renderProcess = (process) => {
 const renderTestimonials = (testimonials) => {
   $("[data-testimonials]").innerHTML = testimonials
     .map(
-      (item) => `
-        <article class="reveal rounded-lg border border-white/10 bg-white/10 p-6 shadow-premium">
+      (item, index) => `
+        <article class="${index === 0 ? "review-feature" : "review-card"} reveal">
           <div class="text-signal-amber">★★★★★</div>
-          <p class="mt-4 text-xl font-bold leading-8 text-white/80">"${escapeHtml(item.quote)}"</p>
+          <p class="mt-4 ${index === 0 ? "text-3xl leading-10" : "text-xl leading-8"} font-bold text-white/80">"${escapeHtml(item.quote)}"</p>
           <div class="mt-5 flex items-center gap-3">
             <span class="grid h-12 w-12 place-items-center rounded-lg bg-brand-metal font-display font-black text-coal-950">${escapeHtml(item.name[0])}</span>
             <div>
@@ -193,7 +214,7 @@ const setupGallery = (gallery) => {
   grid.innerHTML = gallery
     .map(
       (item, index) => `
-        <button class="gallery-item reveal ${index === 0 ? "md:col-span-2 md:row-span-2" : ""} ${index === 3 ? "md:col-span-2" : ""}" type="button" data-gallery-index="${index}">
+        <button class="gallery-item reveal ${index === 0 ? "gallery-hero-tile" : ""} ${index === 3 ? "gallery-wide-tile" : ""}" type="button" data-gallery-index="${index}">
           <img class="h-full w-full object-cover transition duration-700 hover:scale-105" src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
           <span>${escapeHtml(item.title)}</span>
         </button>
@@ -276,7 +297,7 @@ const setupContact = ({ brand, services }) => {
 };
 
 const setupTilt = () => {
-  $$(".service-card, .project-card, .process-card").forEach((card) => {
+  $$(".service-feature-card, .service-mini-card, .case-card, .dispatch-card").forEach((card) => {
     card.addEventListener("pointermove", (event) => {
       const rect = card.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width - 0.5;

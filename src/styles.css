@@ -45,6 +45,66 @@
     @apply border border-white/20 bg-white/10 backdrop-blur-2xl;
   }
 
+  .hero-angle {
+    @apply absolute bottom-0 left-[36%] hidden h-[68%] w-36 bg-brand-metal opacity-60 lg:block;
+    clip-path: polygon(54% 0, 100% 0, 46% 100%, 0 100%);
+  }
+
+  .rail-card {
+    writing-mode: vertical-rl;
+    @apply mb-10 flex h-[420px] items-center justify-between rounded-lg border border-white/10 bg-white/10 px-4 py-5 text-xs font-black uppercase tracking-[.16em] text-white/60 backdrop-blur-xl;
+  }
+
+  .hero-photo-card {
+    @apply absolute right-0 top-4 h-[420px] w-[82%] overflow-hidden rounded-lg border border-white/10 bg-white/10 shadow-premium backdrop-blur-xl sm:h-[500px] lg:top-16;
+  }
+
+  .hero-photo-card img {
+    @apply h-full w-full object-cover opacity-90 transition duration-700;
+  }
+
+  .hero-photo-label {
+    @apply absolute inset-x-4 bottom-4 rounded-lg border border-white/10 bg-coal-950/70 p-4 backdrop-blur-xl;
+  }
+
+  .hero-photo-label span {
+    @apply text-xs font-black uppercase tracking-[.15em] text-signal-amber;
+  }
+
+  .hero-photo-label strong {
+    @apply mt-1 block text-sm font-black text-white;
+  }
+
+  .hero-command-card {
+    @apply absolute left-0 top-28 w-[82%] rounded-lg border border-white/20 bg-coal-950/70 p-5 shadow-premium backdrop-blur-2xl sm:w-[72%] lg:top-40;
+  }
+
+  .hero-workflow {
+    @apply absolute bottom-3 right-0 w-[86%] rounded-lg border border-white/10 bg-white/10 p-5 shadow-premium backdrop-blur-2xl sm:w-[70%];
+  }
+
+  .hero-workflow li {
+    @apply flex justify-between gap-4;
+  }
+
+  .hero-workflow strong {
+    @apply text-signal-cyan;
+  }
+
+  .marquee-track {
+    animation: marquee 28s linear infinite;
+    @apply flex w-max gap-8 whitespace-nowrap text-sm font-black uppercase tracking-[.16em] text-white/60;
+  }
+
+  .marquee-track span {
+    @apply relative px-4;
+  }
+
+  .marquee-track span::after {
+    content: "";
+    @apply absolute -right-5 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-signal-orange;
+  }
+
   .eyebrow {
     @apply inline-flex items-center gap-3 text-xs font-black uppercase tracking-[.14em] text-signal-orange;
   }
@@ -83,8 +143,82 @@
     @apply overflow-hidden rounded-lg border border-coal-950/10 bg-white shadow-lift transition duration-300 will-change-transform;
   }
 
+  .service-index-panel {
+    @apply rounded-lg border border-coal-950/10 bg-coal-950 p-5 text-white shadow-lift lg:sticky lg:top-28 lg:self-start;
+  }
+
+  .service-index-link {
+    @apply grid grid-cols-[42px_1fr] items-center gap-3 rounded-lg border border-white/10 bg-white/10 p-3 text-left transition hover:bg-white/20;
+  }
+
+  .service-index-link span {
+    @apply font-display text-sm font-black text-signal-cyan;
+  }
+
+  .service-index-link strong {
+    @apply text-sm font-black text-white;
+  }
+
+  .service-bento {
+    @apply grid auto-rows-auto gap-5 md:grid-cols-2;
+  }
+
+  .service-feature-card,
+  .service-mini-card {
+    @apply overflow-hidden rounded-lg border border-coal-950/10 bg-white shadow-lift transition duration-300 will-change-transform;
+  }
+
+  .service-feature-media {
+    @apply relative h-80 overflow-hidden rounded-b-none rounded-t-lg sm:h-96;
+  }
+
+  .service-mini-media {
+    @apply relative h-48 overflow-hidden rounded-b-none rounded-t-lg;
+  }
+
+  .service-feature-media img,
+  .service-mini-media img {
+    @apply h-full w-full object-cover transition duration-700 group-hover:scale-105;
+  }
+
   .project-card {
     @apply overflow-hidden rounded-lg border border-white/10 bg-white/10 shadow-premium transition duration-300 will-change-transform;
+  }
+
+  .case-rail {
+    @apply grid gap-5;
+  }
+
+  .case-card {
+    @apply relative grid overflow-hidden rounded-lg border border-white/10 bg-white/10 shadow-premium transition duration-300 will-change-transform md:grid-cols-[96px_.84fr_1fr];
+  }
+
+  .case-number {
+    @apply hidden place-items-center border-r border-white/10 font-display text-3xl font-black text-signal-cyan md:grid;
+  }
+
+  .case-image {
+    @apply h-64 overflow-hidden md:h-full;
+  }
+
+  .case-image img {
+    @apply h-full w-full object-cover transition duration-700 group-hover:scale-105;
+  }
+
+  .case-copy {
+    @apply p-6;
+  }
+
+  .case-copy span {
+    @apply text-xs font-black uppercase tracking-[.15em] text-signal-amber;
+  }
+
+  .case-copy h3 {
+    @apply mt-3 font-display text-2xl font-black tracking-normal text-white;
+  }
+
+  .case-copy p {
+    @apply mt-3 font-medium leading-7 text-white/60;
   }
 
   .process-card {
@@ -100,12 +234,81 @@
     @apply relative z-10;
   }
 
+  .dispatch-line {
+    @apply grid gap-5 lg:grid-cols-3;
+  }
+
+  .dispatch-card {
+    @apply relative min-h-72 overflow-hidden rounded-lg border border-coal-950/10 bg-white p-7 shadow-lift transition duration-300 will-change-transform;
+  }
+
+  .dispatch-card::after {
+    content: "";
+    @apply absolute inset-y-0 right-0 w-1/2 bg-[repeating-linear-gradient(135deg,rgba(31,111,235,.11)_0_1px,transparent_1px_14px)] opacity-70;
+  }
+
+  .dispatch-card > * {
+    @apply relative z-10;
+  }
+
+  .dispatch-step {
+    @apply block font-display text-6xl font-black text-signal-orange;
+  }
+
+  .dispatch-card h3 {
+    @apply mt-14 font-display text-2xl font-black tracking-normal;
+  }
+
+  .dispatch-card p {
+    @apply mt-4 font-medium leading-7 text-coal-950/60;
+  }
+
+  .dispatch-connector {
+    @apply absolute -right-4 top-1/2 z-20 hidden h-1 w-8 -translate-y-1/2 bg-brand-metal lg:block;
+  }
+
   .gallery-item {
     @apply relative overflow-hidden rounded-lg border-0 bg-coal-950 p-0 text-left shadow-lift;
   }
 
   .gallery-item span {
     @apply absolute inset-x-3 bottom-3 rounded-lg border border-white/10 bg-coal-950/70 px-4 py-3 font-black text-white backdrop-blur-xl;
+  }
+
+  .gallery-wall {
+    @apply grid auto-rows-[220px] gap-4 md:grid-cols-4;
+  }
+
+  .gallery-hero-tile {
+    @apply md:col-span-2 md:row-span-2;
+  }
+
+  .gallery-wide-tile {
+    @apply md:col-span-2;
+  }
+
+  .review-board {
+    @apply grid gap-5 md:grid-cols-2;
+  }
+
+  .review-feature {
+    @apply rounded-lg border border-white/10 bg-white/10 p-6 shadow-premium md:col-span-2;
+  }
+
+  .review-card {
+    @apply rounded-lg border border-white/10 bg-white/10 p-6 shadow-premium;
+  }
+
+  .quote-console {
+    @apply bg-coal-950 p-6 text-white sm:p-8 lg:p-10;
+  }
+
+  .quote-console-image {
+    @apply mt-8 h-64 overflow-hidden rounded-lg border border-white/10;
+  }
+
+  .quote-console-image img {
+    @apply h-full w-full object-cover;
   }
 
   .contact-tile {
@@ -174,6 +377,16 @@
 
   .menu-lines::after {
     top: 7px;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
   }
 }
 

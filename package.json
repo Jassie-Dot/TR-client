@@ -1,0 +1,16 @@
+{
+  "name": "tr-enterprises-premium-fullstack",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Premium full-stack Node.js and Tailwind website for TR Enterprises.",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --minify",
+    "watch:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
+    "check": "node --check server.js && node --check public/app.js"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

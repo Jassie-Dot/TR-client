@@ -1,0 +1,324 @@
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+const escapeHtml = (value = "") =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+const iconFor = (category = "") => {
+  const normalized = category.toLowerCase();
+  if (normalized.includes("solar")) return "SOL";
+  if (normalized.includes("industrial") || normalized.includes("plant")) return "PLT";
+  if (normalized.includes("power")) return "PWR";
+  if (normalized.includes("workforce")) return "CREW";
+  return "OPS";
+};
+
+const setProgress = () => {
+  const progress = $("[data-scroll-progress]");
+  const toTop = $("[data-to-top]");
+  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+  const percent = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+
+  if (progress) progress.style.width = `${Math.min(percent, 100)}%`;
+  if (toTop) toTop.classList.toggle("hidden", window.scrollY < 640);
+};
+
+const setupMenu = () => {
+  const toggle = $("[data-menu-toggle]");
+  const nav = $("[data-mobile-nav]");
+
+  toggle?.addEventListener("click", () => {
+    const isOpen = nav?.classList.toggle("hidden") === false;
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    toggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    document.body.classList.toggle("overflow-hidden", isOpen);
+  });
+
+  $$("[data-mobile-nav] a").forEach((link) => {
+    link.addEventListener("click", () => {
+      nav?.classList.add("hidden");
+      toggle?.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("overflow-hidden");
+    });
+  });
+};
+
+const setupReveal = () => {
+  const items = $$(".reveal");
+  const observer = "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12 }
+      )
+    : null;
+
+  items.forEach((item, index) => {
+    item.style.transitionDelay = `${Math.min(index * 35, 220)}ms`;
+    if (observer) observer.observe(item);
+    else item.classList.add("is-visible");
+  });
+};
+
+const renderHero = ({ brand, hero, metrics }) => {
+  $("[data-brand-short]").textContent = brand.shortName;
+  $("[data-brand-name]").textContent = brand.name;
+  $("[data-hero-eyebrow]").textContent = hero.eyebrow;
+  $("[data-hero-title]").textContent = hero.title;
+  $("[data-hero-text]").textContent = hero.text;
+  $("[data-hero-image]").src = hero.image;
+
+  $("[data-phone-link]").href = `tel:${brand.phone.replace(/\s/g, "")}`;
+  $("[data-floating-whatsapp]").href = `https://wa.me/${brand.whatsapp}`;
+
+  $("[data-hero-chips]").innerHTML = hero.chips
+    .map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`)
+    .join("");
+
+  $("[data-hero-metrics]").innerHTML = metrics
+    .map(
+      (metric) => `
+        <div class="rounded-lg border border-white/10 bg-white/10 p-4">
+          <strong class="block font-display text-3xl font-black text-signal-amber">${escapeHtml(metric.value)}</strong>
+          <span class="mt-2 block text-sm font-bold leading-6 text-white/70">${escapeHtml(metric.label)}</span>
+        </div>
+      `
+    )
+    .join("");
+
+  $("[data-metric-strip]").innerHTML = metrics
+    .map(
+      (metric) => `
+        <div class="border-b border-coal-950/10 p-6 md:border-b-0 md:border-r last:border-r-0">
+          <strong class="block font-display text-3xl font-black">${escapeHtml(metric.value)}</strong>
+          <span class="mt-2 block text-sm font-black uppercase tracking-[.12em] text-coal-950/50">${escapeHtml(metric.label)}</span>
+        </div>
+      `
+    )
+    .join("");
+};
+
+const renderServices = (services) => {
+  $("[data-services]").innerHTML = services
+    .map(
+      (service) => `
+        <article class="service-card reveal group">
+          <div class="relative h-64 overflow-hidden rounded-lg">
+            <img class="h-full w-full object-cover transition duration-700 group-hover:scale-105" src="${service.image}" alt="${escapeHtml(service.title)}" loading="lazy" />
+            <div class="absolute inset-0 bg-gradient-to-t from-coal-950/75 via-coal-950/10 to-transparent"></div>
+            <span class="absolute left-4 top-4 rounded-md bg-white/90 px-3 py-2 font-display text-xs font-black text-coal-950">${iconFor(service.category)}</span>
+          </div>
+          <div class="p-5">
+            <span class="text-xs font-black uppercase tracking-[.15em] text-signal-orange">${escapeHtml(service.category)}</span>
+            <h3 class="mt-3 font-display text-2xl font-black tracking-normal">${escapeHtml(service.title)}</h3>
+            <p class="mt-3 text-sm font-medium leading-7 text-coal-950/60">${escapeHtml(service.summary)}</p>
+            <ul class="mt-5 grid gap-2">
+              ${service.bullets.map((bullet) => `<li class="flex gap-3 text-sm font-black text-coal-950/75"><span class="mt-2 h-2 w-2 rounded-sm bg-signal-green"></span>${escapeHtml(bullet)}</li>`).join("")}
+            </ul>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+};
+
+const renderProjects = (projects) => {
+  $("[data-projects]").innerHTML = projects
+    .map(
+      (project) => `
+        <article class="project-card reveal group">
+          <img class="h-72 w-full object-cover transition duration-700 group-hover:scale-105" src="${project.image}" alt="${escapeHtml(project.title)}" loading="lazy" />
+          <div class="p-6">
+            <span class="text-xs font-black uppercase tracking-[.15em] text-signal-amber">${escapeHtml(project.type)}</span>
+            <h3 class="mt-3 font-display text-2xl font-black tracking-normal">${escapeHtml(project.title)}</h3>
+            <p class="mt-3 font-medium leading-7 text-white/60">${escapeHtml(project.impact)}</p>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+};
+
+const renderProcess = (process) => {
+  $("[data-process]").innerHTML = process
+    .map(
+      (item) => `
+        <article class="process-card reveal">
+          <span class="font-display text-5xl font-black text-signal-orange">${escapeHtml(item.step)}</span>
+          <h3 class="mt-16 font-display text-2xl font-black tracking-normal">${escapeHtml(item.title)}</h3>
+          <p class="mt-4 font-medium leading-7 text-coal-950/60">${escapeHtml(item.text)}</p>
+        </article>
+      `
+    )
+    .join("");
+};
+
+const renderTestimonials = (testimonials) => {
+  $("[data-testimonials]").innerHTML = testimonials
+    .map(
+      (item) => `
+        <article class="reveal rounded-lg border border-white/10 bg-white/10 p-6 shadow-premium">
+          <div class="text-signal-amber">★★★★★</div>
+          <p class="mt-4 text-xl font-bold leading-8 text-white/80">"${escapeHtml(item.quote)}"</p>
+          <div class="mt-5 flex items-center gap-3">
+            <span class="grid h-12 w-12 place-items-center rounded-lg bg-brand-metal font-display font-black text-coal-950">${escapeHtml(item.name[0])}</span>
+            <div>
+              <strong class="block">${escapeHtml(item.name)}</strong>
+              <span class="text-sm font-bold text-white/50">${escapeHtml(item.role)}</span>
+            </div>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+};
+
+const setupGallery = (gallery) => {
+  const grid = $("[data-gallery]");
+  const lightbox = $("[data-lightbox]");
+  const image = $("[data-lightbox-image]");
+  const caption = $("[data-lightbox-caption]");
+
+  grid.innerHTML = gallery
+    .map(
+      (item, index) => `
+        <button class="gallery-item reveal ${index === 0 ? "md:col-span-2 md:row-span-2" : ""} ${index === 3 ? "md:col-span-2" : ""}" type="button" data-gallery-index="${index}">
+          <img class="h-full w-full object-cover transition duration-700 hover:scale-105" src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <span>${escapeHtml(item.title)}</span>
+        </button>
+      `
+    )
+    .join("");
+
+  grid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-gallery-index]");
+    if (!button) return;
+
+    const item = gallery[Number(button.dataset.galleryIndex)];
+    image.src = item.image;
+    image.alt = item.title;
+    caption.textContent = item.title;
+    lightbox.classList.remove("hidden");
+    lightbox.classList.add("grid");
+  });
+
+  const close = () => {
+    lightbox.classList.add("hidden");
+    lightbox.classList.remove("grid");
+  };
+
+  $("[data-lightbox-close]").addEventListener("click", close);
+  lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) close();
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") close();
+  });
+};
+
+const setupContact = ({ brand, services }) => {
+  $("[data-contact-phone]").href = `tel:${brand.phone.replace(/\s/g, "")}`;
+  $("[data-contact-phone-text]").textContent = brand.phone;
+  $("[data-contact-location]").textContent = brand.location;
+  $("[data-contact-address]").textContent = brand.address;
+
+  const select = $("[data-service-select]");
+  select.innerHTML = [
+    '<option value="">Select service</option>',
+    ...services.map((service) => `<option>${escapeHtml(service.title)}</option>`)
+  ].join("");
+
+  const form = $("[data-inquiry-form]");
+  const note = $("[data-form-note]");
+  const whatsappResult = $("[data-whatsapp-result]");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    note.textContent = "Submitting your inquiry...";
+    note.className = "mt-4 min-h-6 font-bold text-coal-950/70";
+    whatsappResult.classList.add("hidden");
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+
+    try {
+      const response = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || "Unable to submit inquiry.");
+      }
+
+      note.textContent = "Inquiry saved. You can continue instantly on WhatsApp.";
+      note.className = "mt-4 min-h-6 font-bold text-signal-green";
+      whatsappResult.href = result.whatsappUrl;
+      whatsappResult.classList.remove("hidden");
+      form.reset();
+    } catch (error) {
+      note.textContent = error.message || "Something went wrong. Please try again.";
+      note.className = "mt-4 min-h-6 font-bold text-red-600";
+    }
+  });
+};
+
+const setupTilt = () => {
+  $$(".service-card, .project-card, .process-card").forEach((card) => {
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `perspective(900px) rotateX(${y * -2.4}deg) rotateY(${x * 2.4}deg) translateY(-4px)`;
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.transform = "";
+    });
+  });
+};
+
+const loadSite = async () => {
+  const response = await fetch("/api/site");
+  if (!response.ok) throw new Error("Unable to load site data.");
+  return response.json();
+};
+
+const boot = async () => {
+  setupMenu();
+  window.addEventListener("scroll", setProgress, { passive: true });
+  $("[data-to-top]").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  setProgress();
+
+  try {
+    const site = await loadSite();
+    renderHero(site);
+    renderServices(site.services);
+    renderProjects(site.projects);
+    renderProcess(site.process);
+    renderTestimonials(site.testimonials);
+    setupGallery(site.gallery);
+    setupContact(site);
+    setupReveal();
+    setupTilt();
+  } catch (error) {
+    const note = document.createElement("div");
+    note.className = "fixed bottom-4 left-4 z-[100] rounded-lg bg-red-600 px-4 py-3 font-bold text-white shadow-premium";
+    note.textContent = error.message;
+    document.body.appendChild(note);
+  }
+};
+
+boot();

@@ -89,12 +89,12 @@ const setupReveal = () => {
             }
           });
         },
-        { threshold: 0.12 }
+        { threshold: 0.08, rootMargin: "0px 0px -8% 0px" }
       )
     : null;
 
   items.forEach((item, index) => {
-    item.style.transitionDelay = `${Math.min(index * 35, 220)}ms`;
+    item.style.transitionDelay = `${Math.min(index * 14, 84)}ms`;
     if (observer) observer.observe(item);
     else item.classList.add("is-visible");
   });
@@ -106,27 +106,33 @@ const renderHero = ({ brand, hero, metrics }) => {
   $("[data-hero-eyebrow]").textContent = hero.eyebrow;
   $("[data-hero-title]").textContent = hero.title;
   $("[data-hero-text]").textContent = hero.text;
-  $("[data-hero-image]").src = hero.image;
+  const heroImage = $("[data-hero-image]");
+  if (heroImage && hero.image) {
+    heroImage.src = hero.image;
+  }
 
   $("[data-phone-link]").href = `tel:${brand.phone.replace(/\s/g, "")}`;
   $("[data-floating-whatsapp]").href = `https://wa.me/${brand.whatsapp}`;
 
-  $("[data-hero-chips]").innerHTML = hero.chips
+  $("[data-hero-chips]").innerHTML = (hero.chips || [])
     .map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`)
     .join("");
 
-  $("[data-hero-metrics]").innerHTML = metrics
-    .map(
-      (metric) => `
-        <div class="metric-card rounded-lg p-4">
-          <strong class="block font-display text-3xl font-black text-signal-amber">${escapeHtml(metric.value)}</strong>
-          <span class="metric-label mt-2 block text-sm font-bold leading-6">${escapeHtml(metric.label)}</span>
-        </div>
-      `
-    )
-    .join("");
+  const heroMetrics = $("[data-hero-metrics]");
+  if (heroMetrics) {
+    heroMetrics.innerHTML = (metrics || [])
+      .map(
+        (metric) => `
+          <div class="metric-card rounded-lg p-4">
+            <strong class="block font-display text-3xl font-black text-signal-amber">${escapeHtml(metric.value)}</strong>
+            <span class="metric-label mt-2 block text-sm font-bold leading-6">${escapeHtml(metric.label)}</span>
+          </div>
+        `
+      )
+      .join("");
+  }
 
-  $("[data-metric-strip]").innerHTML = metrics
+  $("[data-metric-strip]").innerHTML = (metrics || [])
     .map(
       (metric) => `
         <div class="metric-cell border-b p-6 md:border-b-0 md:border-r last:border-r-0">
@@ -136,6 +142,43 @@ const renderHero = ({ brand, hero, metrics }) => {
       `
     )
     .join("");
+};
+
+const setText = (selector, value) => {
+  const node = $(selector);
+  if (node && value !== undefined) node.textContent = value;
+};
+
+const renderStaticContent = (sections = {}) => {
+  const marquee = sections.marquee || [];
+  if (marquee.length) {
+    $("[data-marquee-track]").innerHTML = [...marquee, ...marquee]
+      .map((item) => `<span>${escapeHtml(item)}</span>`)
+      .join("");
+  }
+
+  setText("[data-services-eyebrow]", sections.services?.eyebrow);
+  setText("[data-services-title]", sections.services?.title);
+  setText("[data-services-text]", sections.services?.text);
+  setText("[data-services-index-label]", sections.services?.indexLabel);
+  setText("[data-projects-eyebrow]", sections.projects?.eyebrow);
+  setText("[data-projects-title]", sections.projects?.title);
+  setText("[data-projects-text]", sections.projects?.text);
+  setText("[data-process-eyebrow]", sections.process?.eyebrow);
+  setText("[data-process-title]", sections.process?.title);
+  setText("[data-gallery-eyebrow]", sections.gallery?.eyebrow);
+  setText("[data-gallery-title]", sections.gallery?.title);
+  setText("[data-gallery-text]", sections.gallery?.text);
+  setText("[data-reviews-eyebrow]", sections.reviews?.eyebrow);
+  setText("[data-reviews-title]", sections.reviews?.title);
+  setText("[data-reviews-button]", sections.reviews?.button);
+  setText("[data-contact-eyebrow]", sections.contact?.eyebrow);
+  setText("[data-contact-title]", sections.contact?.title);
+  setText("[data-contact-form-eyebrow]", sections.contact?.formEyebrow);
+  setText("[data-contact-form-title]", sections.contact?.formTitle);
+  setText("[data-contact-submit]", sections.contact?.button);
+  setText("[data-footer-tagline]", sections.footer?.tagline);
+  setText("[data-footer-copyright]", sections.footer?.copyright);
 };
 
 const renderServices = (services) => {
@@ -244,7 +287,7 @@ const setupGallery = (gallery) => {
     .map(
       (item, index) => `
         <button class="gallery-item reveal ${index === 0 ? "gallery-hero-tile" : ""} ${index === 3 ? "gallery-wide-tile" : ""}" type="button" data-gallery-index="${index}">
-          <img class="h-full w-full object-cover transition duration-700 hover:scale-105" src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <img class="h-full w-full object-cover transition duration-300 hover:scale-105" src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
           <span>${escapeHtml(item.title)}</span>
         </button>
       `
@@ -355,6 +398,7 @@ const boot = async () => {
 
   try {
     const site = await loadSite();
+    renderStaticContent(site.sections);
     renderHero(site);
     renderServices(site.services);
     renderProjects(site.projects);

@@ -7,16 +7,11 @@
     "dev": "node server.js",
     "start": "node server.js",
     "build:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --minify",
-    "build:scene": "esbuild ./public/scene.js --bundle --format=iife --global-name=TRScrollScene --outfile=./public/scene.bundle.js --minify",
-    "build": "npm run build:css && npm run build:scene",
+    "build": "npm run build:css",
     "watch:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
-    "check": "node --check server.js && node --check public/app.js && node --check public/scene.js"
+    "check": "node --check server.js && node --check public/app.js && node --check public/admin.js"
   },
   "devDependencies": {
-    "esbuild": "^0.28.0",
     "tailwindcss": "^3.4.17"
-  },
-  "dependencies": {
-    "three": "^0.184.0"
   }
 }

@@ -2,14 +2,17 @@ const http = require("node:http");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const site = require("./data/site");
+const initialSite = require("./data/site");
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ASSETS_DIR = path.join(ROOT, "assets");
-const INQUIRIES_FILE = path.join(ROOT, "data", "inquiries.json");
-const MAX_BODY_BYTES = 1024 * 64;
+const DATA_DIR = path.join(ROOT, "data");
+const SITE_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
+const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json");
+const MAX_BODY_BYTES = 1024 * 512;
+let siteState = initialSite;
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -24,13 +27,13 @@ const mimeTypes = new Map([
   [".ico", "image/x-icon"]
 ]);
 
-const send = (res, status, body, headers = {}) => {
+const send = (res, status, body, headers = {}, method = "GET") => {
   res.writeHead(status, {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     ...headers
   });
-  res.end(body);
+  res.end(method === "HEAD" ? undefined : body);
 };
 
 const sendJson = (res, status, payload) => {
@@ -43,10 +46,14 @@ const sendJson = (res, status, payload) => {
 const readJsonBody = (req) =>
   new Promise((resolve, reject) => {
     let body = "";
+    let bodyTooLarge = false;
 
     req.on("data", (chunk) => {
+      if (bodyTooLarge) return;
+
       body += chunk;
       if (Buffer.byteLength(body) > MAX_BODY_BYTES) {
+        bodyTooLarge = true;
         reject(new Error("Request body is too large."));
         req.destroy();
       }
@@ -67,6 +74,67 @@ const readJsonBody = (req) =>
 
     req.on("error", reject);
   });
+
+const writeJsonFile = async (filePath, payload) => {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  const tempPath = `${filePath}.${Date.now()}.tmp`;
+  await fs.writeFile(tempPath, `${JSON.stringify(payload, null, 2)}\n`);
+  await fs.rename(tempPath, filePath);
+};
+
+const loadSiteContent = async () => {
+  try {
+    const content = await fs.readFile(SITE_CONTENT_FILE, "utf8");
+    siteState = JSON.parse(content);
+    validateSiteContent(siteState);
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      console.warn(`Using default site content: ${error.message}`);
+    }
+
+    siteState = initialSite;
+    await writeJsonFile(SITE_CONTENT_FILE, siteState);
+  }
+};
+
+const validateSiteContent = (payload) => {
+  const requiredObjects = ["brand", "hero", "sections"];
+  const requiredArrays = ["metrics", "services", "projects", "process", "testimonials", "gallery"];
+
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Site content must be a JSON object.");
+  }
+
+  requiredObjects.forEach((key) => {
+    if (!payload[key] || typeof payload[key] !== "object" || Array.isArray(payload[key])) {
+      throw new Error(`Missing required object: ${key}.`);
+    }
+  });
+
+  requiredArrays.forEach((key) => {
+    if (!Array.isArray(payload[key])) {
+      throw new Error(`Missing required list: ${key}.`);
+    }
+  });
+
+  if (!payload.brand.name || !payload.brand.phone || !payload.brand.whatsapp) {
+    throw new Error("Brand name, phone, and WhatsApp number are required.");
+  }
+
+  if (!payload.hero.title || !payload.hero.text) {
+    throw new Error("Hero title and text are required.");
+  }
+
+  if (!payload.hero.image || !String(payload.hero.image).startsWith("/assets/")) {
+    throw new Error("Hero image must point to an asset path.");
+  }
+};
+
+const saveSiteContent = async (payload) => {
+  validateSiteContent(payload);
+  siteState = payload;
+  await writeJsonFile(SITE_CONTENT_FILE, siteState);
+};
 
 const sanitize = (value) => String(value || "").trim().slice(0, 800);
 
@@ -93,7 +161,7 @@ const saveInquiry = async (inquiry) => {
   }
 
   existing.unshift(inquiry);
-  await fs.writeFile(INQUIRIES_FILE, `${JSON.stringify(existing, null, 2)}\n`);
+  await writeJsonFile(INQUIRIES_FILE, existing);
 };
 
 const handleInquiry = async (req, res) => {
@@ -121,7 +189,7 @@ const handleInquiry = async (req, res) => {
     await saveInquiry(inquiry);
 
     const whatsappText = createWhatsAppMessage(inquiry);
-    const whatsappUrl = `https://wa.me/${site.brand.whatsapp}?text=${encodeURIComponent(whatsappText)}`;
+    const whatsappUrl = `https://wa.me/${siteState.brand.whatsapp}?text=${encodeURIComponent(whatsappText)}`;
 
     sendJson(res, 201, {
       ok: true,
@@ -137,18 +205,32 @@ const handleInquiry = async (req, res) => {
   }
 };
 
-const resolveStaticPath = (urlPath) => {
-  const decoded = decodeURIComponent(urlPath);
-  const cleanPath = decoded === "/" ? "/index.html" : decoded;
+const isInsideDirectory = (filePath, directory) => {
+  const relative = path.relative(directory, filePath);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+};
 
-  if (cleanPath.startsWith("/assets/")) {
-    const relativeAssetPath = cleanPath.replace(/^\/assets\//, "");
-    const assetPath = path.normalize(path.join(ASSETS_DIR, relativeAssetPath));
-    return assetPath.startsWith(ASSETS_DIR) ? assetPath : null;
+const resolveFromDirectory = (directory, relativePath) => {
+  const filePath = path.resolve(directory, relativePath);
+  return isInsideDirectory(filePath, directory) ? filePath : null;
+};
+
+const resolveStaticPath = (urlPath) => {
+  let decoded;
+
+  try {
+    decoded = decodeURIComponent(urlPath);
+  } catch {
+    return null;
   }
 
-  const publicPath = path.normalize(path.join(PUBLIC_DIR, cleanPath));
-  return publicPath.startsWith(PUBLIC_DIR) ? publicPath : null;
+  const cleanPath = decoded === "/" ? "index.html" : decoded.replace(/^\/+/, "");
+
+  if (cleanPath.startsWith("assets/")) {
+    return resolveFromDirectory(ASSETS_DIR, cleanPath.replace(/^assets\//, ""));
+  }
+
+  return resolveFromDirectory(PUBLIC_DIR, cleanPath);
 };
 
 const serveStatic = async (req, res, urlPath) => {
@@ -165,7 +247,7 @@ const serveStatic = async (req, res, urlPath) => {
     send(res, 200, content, {
       "Content-Type": mimeTypes.get(ext) || "application/octet-stream",
       "Cache-Control": "no-store"
-    });
+    }, req.method);
   } catch {
     if (!path.extname(urlPath)) {
       serveStatic(req, res, "/index.html");
@@ -186,7 +268,18 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (method === "GET" && requestUrl.pathname === "/api/site") {
-    sendJson(res, 200, site);
+    sendJson(res, 200, siteState);
+    return;
+  }
+
+  if (method === "PUT" && requestUrl.pathname === "/api/site") {
+    try {
+      const payload = await readJsonBody(req);
+      await saveSiteContent(payload);
+      sendJson(res, 200, { ok: true, message: "Site content saved.", site: siteState });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, message: error.message || "Unable to save site content." });
+    }
     return;
   }
 
@@ -201,13 +294,21 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (method !== "GET" && method !== "HEAD") {
-    send(res, 405, "Method not allowed", { "Content-Type": "text/plain; charset=utf-8" });
+    send(res, 405, "Method not allowed", {
+      "Allow": "GET, HEAD",
+      "Content-Type": "text/plain; charset=utf-8"
+    });
     return;
   }
 
   await serveStatic(req, res, requestUrl.pathname);
 });
 
-server.listen(PORT, () => {
-  console.log(`TR Enterprises is running at http://127.0.0.1:${PORT}`);
+loadSiteContent().then(() => {
+  server.listen(PORT, () => {
+    console.log(`TR Enterprises is running at http://127.0.0.1:${PORT}`);
+  });
+}).catch((error) => {
+  console.error(`Unable to start TR Enterprises: ${error.message}`);
+  process.exitCode = 1;
 });

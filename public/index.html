@@ -23,12 +23,10 @@
         document.documentElement.dataset.theme = "dark";
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=premium-10" />
-    <link rel="stylesheet" href="/hero-redesign.css?v=creative-2" />
+    <link rel="stylesheet" href="/styles.css?v=premium-11" />
   </head>
   <body class="theme-body font-body selection:bg-signal-amber selection:text-coal-950">
     <div class="fixed left-0 top-0 z-[90] h-1 w-0 bg-brand-metal shadow-glow" data-scroll-progress></div>
-    <canvas class="scroll-scene" data-scroll-scene aria-hidden="true"></canvas>
 
     <header class="site-header fixed inset-x-0 top-0 z-50">
       <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -48,6 +46,7 @@
           <a class="nav-link" href="#gallery">Gallery</a>
           <a class="nav-link" href="#reviews">Reviews</a>
           <a class="nav-link" href="#contact">Contact</a>
+          <a class="nav-link admin-link" href="/admin.html">Admin</a>
         </nav>
 
         <div class="hidden items-center gap-3 lg:flex">
@@ -76,6 +75,7 @@
           <a class="mobile-link" href="#gallery">Gallery</a>
           <a class="mobile-link" href="#reviews">Reviews</a>
           <a class="mobile-link" href="#contact">Contact</a>
+          <a class="mobile-link" href="/admin.html">Admin</a>
         </div>
       </nav>
     </header>
@@ -84,13 +84,14 @@
       <section class="hero-section relative min-h-screen overflow-hidden pt-20">
         <div class="hero-backdrop absolute inset-0"></div>
         <img
-          class="absolute right-0 top-20 hidden h-[calc(100%-5rem)] w-[56%] object-cover opacity-50 mix-blend-screen lg:block"
-          src="/assets/images/hero-solar-maintenance.png"
-          alt="Solar maintenance crew working at a commercial solar site"
+          class="hero-background-image"
+          src="/assets/images/industrial-maintenance.png"
+          alt=""
           data-hero-image
           fetchpriority="high"
+          aria-hidden="true"
         />
-        <div class="absolute inset-0 bg-industrial-grid bg-[length:74px_74px] opacity-40"></div>
+        <div class="absolute inset-0 bg-industrial-grid bg-[length:74px_74px] opacity-28"></div>
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[var(--page-bg)] to-transparent"></div>
         <div class="hero-angle" aria-hidden="true"></div>
 
@@ -109,43 +110,11 @@
             </div>
             <div class="mt-7 flex flex-wrap gap-3" data-hero-chips></div>
           </div>
-
-          <div class="hero-showcase reveal">
-            <div class="hero-premium-stage">
-              <div class="hero-lens-frame">
-                <img src="/assets/images/industrial-maintenance.png" alt="Industrial maintenance worker inspecting plant equipment" />
-                <span class="hero-scan-line" aria-hidden="true"></span>
-              </div>
-
-              <aside class="hero-status-card">
-                <p>TR Field Ops</p>
-                <h2>Site crews with a cleaner handover.</h2>
-                <span>
-                  Solar, plant, power, and manpower support coordinated for active sites.
-                </span>
-                <div class="hero-status-row">
-                  <strong><i></i>Live response</strong>
-                  <strong>Delhi NCR</strong>
-                </div>
-              </aside>
-
-              <div class="hero-route-card">
-                <p>Site path</p>
-                <ol>
-                  <li><strong>01</strong><span>Audit</span></li>
-                  <li><strong>02</strong><span>Deploy</span></li>
-                  <li><strong>03</strong><span>Handover</span></li>
-                </ol>
-              </div>
-
-              <div class="hero-mini-metrics" data-hero-metrics></div>
-            </div>
-          </div>
         </div>
       </section>
 
       <section class="marquee-section overflow-hidden py-4" aria-label="Capability strip">
-        <div class="marquee-track">
+        <div class="marquee-track" data-marquee-track>
           <span>Solar cleaning</span>
           <span>Industrial maintenance</span>
           <span>Manpower supply</span>
@@ -173,17 +142,17 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="grid gap-10 lg:grid-cols-[.38fr_.62fr] lg:items-end">
             <div class="section-head reveal">
-              <p class="eyebrow-dark">Services</p>
-              <h2 class="section-title max-w-4xl">Precision site services.</h2>
+              <p class="eyebrow-dark" data-services-eyebrow>Services</p>
+              <h2 class="section-title max-w-4xl" data-services-title>Precision site services.</h2>
             </div>
-            <p class="theme-muted reveal text-lg font-medium leading-8">
+            <p class="theme-muted reveal text-lg font-medium leading-8" data-services-text>
               Focused support for solar, plant, power, and crew work.
             </p>
           </div>
 
           <div class="mt-12 grid gap-6 lg:grid-cols-[280px_1fr]">
             <aside class="service-index-panel reveal">
-              <p class="text-xs font-black uppercase tracking-[.16em] text-signal-orange">Capability index</p>
+              <p class="text-xs font-black uppercase tracking-[.16em] text-signal-orange" data-services-index-label>Capability index</p>
               <div class="mt-6 grid gap-3" data-service-index></div>
             </aside>
             <div class="service-bento" data-services></div>
@@ -194,9 +163,9 @@
       <section id="projects" class="section-pad theme-section-alt overflow-hidden">
         <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[.36fr_.64fr] lg:px-8">
           <div class="section-head reveal lg:sticky lg:top-28 lg:self-start">
-            <p class="eyebrow">Projects</p>
-            <h2 class="section-title">Field proof.</h2>
-            <p class="theme-muted mt-6 text-lg font-medium leading-8">
+            <p class="eyebrow" data-projects-eyebrow>Projects</p>
+            <h2 class="section-title" data-projects-title>Field proof.</h2>
+            <p class="theme-muted mt-6 text-lg font-medium leading-8" data-projects-text>
               Clean snapshots from real site work.
             </p>
           </div>
@@ -208,8 +177,8 @@
         <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(17,22,29,.045)_1px,transparent_1px),linear-gradient(rgba(17,22,29,.04)_1px,transparent_1px)] bg-[length:64px_64px]"></div>
         <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="section-head reveal">
-            <p class="eyebrow-dark">Execution model</p>
-            <h2 class="section-title max-w-4xl">Plan. Deploy. Close.</h2>
+            <p class="eyebrow-dark" data-process-eyebrow>Execution model</p>
+            <h2 class="section-title max-w-4xl" data-process-title>Plan. Deploy. Close.</h2>
           </div>
           <div class="dispatch-line mt-14" data-process></div>
         </div>
@@ -219,10 +188,10 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="grid gap-10 lg:grid-cols-[.44fr_.56fr] lg:items-end">
             <div class="section-head reveal">
-              <p class="eyebrow-dark">Gallery</p>
-              <h2 class="section-title max-w-4xl">Work, in frame.</h2>
+              <p class="eyebrow-dark" data-gallery-eyebrow>Gallery</p>
+              <h2 class="section-title max-w-4xl" data-gallery-title>Work, in frame.</h2>
             </div>
-            <p class="theme-muted reveal text-lg font-medium leading-8">
+            <p class="theme-muted reveal text-lg font-medium leading-8" data-gallery-text>
               Solar, plant, and crew visuals.
             </p>
           </div>
@@ -234,9 +203,9 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div class="grid gap-10 lg:grid-cols-[.38fr_.62fr]">
             <div class="section-head reveal">
-              <p class="eyebrow">Reviews</p>
-              <h2 class="section-title">Trusted execution.</h2>
-              <a class="btn-primary mt-8" href="#contact">Start Your Inquiry</a>
+              <p class="eyebrow" data-reviews-eyebrow>Reviews</p>
+              <h2 class="section-title" data-reviews-title>Trusted execution.</h2>
+              <a class="btn-primary mt-8" href="#contact" data-reviews-button>Start Your Inquiry</a>
             </div>
             <div class="review-board" data-testimonials></div>
           </div>
@@ -247,8 +216,8 @@
         <div class="absolute inset-x-0 top-0 h-32 bg-[var(--section-bg)]"></div>
         <div class="contact-shell relative mx-auto grid max-w-7xl gap-0 overflow-hidden rounded-lg shadow-premium lg:grid-cols-[.9fr_1.1fr]">
           <div class="quote-console reveal">
-            <p class="eyebrow">Get quote</p>
-            <h2 class="mt-4 font-display text-4xl font-black leading-tight tracking-normal sm:text-5xl">Send the brief. We’ll respond fast.</h2>
+            <p class="eyebrow" data-contact-eyebrow>Get quote</p>
+            <h2 class="mt-4 font-display text-4xl font-black leading-tight tracking-normal sm:text-5xl" data-contact-title>Send the brief. We’ll respond fast.</h2>
             <div class="quote-console-image">
               <img src="/assets/images/manpower-team.png" alt="TR Enterprises manpower team ready for site work" />
             </div>
@@ -270,8 +239,8 @@
 
           <form class="reveal p-6 sm:p-8 lg:p-10" data-inquiry-form>
             <div class="mb-6">
-              <p class="eyebrow-dark">Inquiry desk</p>
-              <h3 class="mt-3 font-display text-3xl font-black tracking-normal">Send your requirement</h3>
+              <p class="eyebrow-dark" data-contact-form-eyebrow>Inquiry desk</p>
+              <h3 class="mt-3 font-display text-3xl font-black tracking-normal" data-contact-form-title>Send your requirement</h3>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <label class="field-label">Name<input class="field-input" name="name" placeholder="Your name" required /></label>
@@ -282,7 +251,7 @@
               <label class="field-label sm:col-span-2">Message<textarea class="field-input min-h-36 pt-3" name="message" placeholder="Site size, timeline, requirement"></textarea></label>
             </div>
             <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button class="btn-primary w-full sm:w-auto" type="submit">Submit Inquiry</button>
+              <button class="btn-primary w-full sm:w-auto" type="submit" data-contact-submit>Submit Inquiry</button>
               <a class="hidden font-black text-signal-orange" href="#" target="_blank" rel="noopener" data-whatsapp-result>Open WhatsApp</a>
             </div>
             <p class="mt-4 min-h-6 font-bold" data-form-note></p>
@@ -298,9 +267,9 @@
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-metal font-display text-xs font-black text-coal-950">TR</span>
             <span class="font-display font-extrabold">TR Enterprises</span>
           </a>
-          <p class="mt-3 max-w-xl text-sm font-medium">Premium solar, manpower, power, plant, and site services.</p>
+          <p class="mt-3 max-w-xl text-sm font-medium" data-footer-tagline>Premium solar, manpower, power, plant, and site services.</p>
         </div>
-        <div class="text-sm font-bold">2026 TR Enterprises. All rights reserved.</div>
+        <div class="text-sm font-bold" data-footer-copyright>2026 TR Enterprises. All rights reserved.</div>
       </div>
     </footer>
 
@@ -317,7 +286,6 @@
       </figure>
     </div>
 
-    <script src="/app.js?v=premium-10"></script>
-    <script src="/scene.bundle.js?v=premium-10"></script>
+    <script src="/app.js?v=premium-11"></script>
   </body>
 </html>

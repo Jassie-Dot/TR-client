@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TR Admin | Site Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body>
+    <header class="admin-topbar">
+      <a class="admin-brand" href="/">
+        <span>TR</span>
+        <strong>Site Control</strong>
+      </a>
+      <nav>
+        <a href="/" target="_blank" rel="noopener">View Site</a>
+        <button type="button" data-save>Save Changes</button>
+      </nav>
+    </header>
+
+    <main class="admin-shell">
+      <aside class="admin-sidebar">
+        <p>Content Areas</p>
+        <button class="is-active" type="button" data-tab-button="brand">Brand</button>
+        <button type="button" data-tab-button="hero">Hero</button>
+        <button type="button" data-tab-button="sections">Sections</button>
+        <button type="button" data-tab-button="metrics">Metrics</button>
+        <button type="button" data-tab-button="services">Services</button>
+        <button type="button" data-tab-button="projects">Projects</button>
+        <button type="button" data-tab-button="process">Process</button>
+        <button type="button" data-tab-button="testimonials">Reviews</button>
+        <button type="button" data-tab-button="gallery">Gallery</button>
+        <button type="button" data-tab-button="raw">Raw JSON</button>
+      </aside>
+
+      <section class="admin-workspace">
+        <div class="admin-head">
+          <div>
+            <p>TR Enterprises Admin</p>
+            <h1>Edit the live website content.</h1>
+          </div>
+          <div class="admin-status" data-status>Loading site data...</div>
+        </div>
+
+        <div class="editor-panel is-active" data-tab-panel="brand"></div>
+        <div class="editor-panel" data-tab-panel="hero"></div>
+        <div class="editor-panel" data-tab-panel="sections"></div>
+        <div class="editor-panel" data-tab-panel="metrics"></div>
+        <div class="editor-panel" data-tab-panel="services"></div>
+        <div class="editor-panel" data-tab-panel="projects"></div>
+        <div class="editor-panel" data-tab-panel="process"></div>
+        <div class="editor-panel" data-tab-panel="testimonials"></div>
+        <div class="editor-panel" data-tab-panel="gallery"></div>
+        <div class="editor-panel" data-tab-panel="raw">
+          <div class="panel-title">
+            <h2>Raw JSON</h2>
+            <button type="button" data-apply-json>Apply JSON To Editor</button>
+          </div>
+          <textarea class="raw-json" spellcheck="false" data-raw-json></textarea>
+        </div>
+      </section>
+    </main>
+
+    <script src="/admin.js"></script>
+  </body>
+</html>

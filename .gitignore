@@ -10,3 +10,6 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+data/site-content.json
+data/*.tmp

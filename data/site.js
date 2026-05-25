@@ -13,8 +13,56 @@ const site = {
     title: "Site operations, refined.",
     text:
       "Premium field teams for cleaner, safer, better-run sites.",
-    image: "/assets/images/hero-solar-maintenance.png",
+    image: "/assets/images/industrial-maintenance.png",
     chips: ["Safety-ready", "Delhi NCR", "Fast quote", "Recurring care"]
+  },
+  sections: {
+    marquee: [
+      "Solar cleaning",
+      "Industrial maintenance",
+      "Manpower supply",
+      "Inverter support",
+      "Insulation plant work",
+      "Dismantling support",
+      "Delhi NCR",
+      "Fast quote response"
+    ],
+    services: {
+      eyebrow: "Services",
+      title: "Precision site services.",
+      text: "Focused support for solar, plant, power, and crew work.",
+      indexLabel: "Capability index"
+    },
+    projects: {
+      eyebrow: "Projects",
+      title: "Field proof.",
+      text: "Clean snapshots from real site work."
+    },
+    process: {
+      eyebrow: "Execution model",
+      title: "Plan. Deploy. Close."
+    },
+    gallery: {
+      eyebrow: "Gallery",
+      title: "Work, in frame.",
+      text: "Solar, plant, and crew visuals."
+    },
+    reviews: {
+      eyebrow: "Reviews",
+      title: "Trusted execution.",
+      button: "Start Your Inquiry"
+    },
+    contact: {
+      eyebrow: "Get quote",
+      title: "Send the brief. We'll respond fast.",
+      formEyebrow: "Inquiry desk",
+      formTitle: "Send your requirement",
+      button: "Submit Inquiry"
+    },
+    footer: {
+      tagline: "Premium solar, manpower, power, plant, and site services.",
+      copyright: "2026 TR Enterprises. All rights reserved."
+    }
   },
   metrics: [
     { value: "120+", label: "site tasks" },

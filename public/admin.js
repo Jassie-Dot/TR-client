@@ -1,7 +1,63 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+const ADMIN_TOKEN_KEY = "tr-admin-token";
+const ADMIN_EXPIRES_KEY = "tr-admin-expires";
 let site = null;
+let adminToken = "";
+
+const getStoredAdminToken = () => {
+  try {
+    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || "";
+    const expiresAt = Number(sessionStorage.getItem(ADMIN_EXPIRES_KEY) || 0);
+    if (!token || expiresAt <= Date.now()) {
+      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+      sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+      return "";
+    }
+    return token;
+  } catch {
+    return "";
+  }
+};
+
+const storeAdminToken = (token, expiresInMs) => {
+  adminToken = token;
+  try {
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+    sessionStorage.setItem(ADMIN_EXPIRES_KEY, String(Date.now() + expiresInMs));
+  } catch {
+    // Admin still works for the current page if storage is blocked.
+  }
+};
+
+const clearAdminToken = () => {
+  adminToken = "";
+  try {
+    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
+  } catch {
+    // Nothing to clear.
+  }
+};
+
+const setLoginNote = (message = "", type = "") => {
+  const note = $("[data-login-note]");
+  note.textContent = message;
+  note.className = `login-note ${type ? `is-${type}` : ""}`;
+};
+
+const lockAdmin = (message = "") => {
+  clearAdminToken();
+  document.body.classList.add("is-locked");
+  setLoginNote(message);
+  $("[name='password']")?.focus();
+};
+
+const unlockAdmin = () => {
+  document.body.classList.remove("is-locked");
+  setLoginNote("");
+};
 
 const listConfigs = {
   metrics: {
@@ -297,10 +353,19 @@ const saveSite = async () => {
   try {
     const response = await fetch("/api/site", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${adminToken}`
+      },
       body: JSON.stringify(site)
     });
     const result = await response.json();
+
+    if (response.status === 401) {
+      lockAdmin("Session expired. Enter the admin password again.");
+      throw new Error(result.message || "Admin password required.");
+    }
+
     if (!response.ok || !result.ok) throw new Error(result.message || "Unable to save.");
     site = result.site;
     renderAll();
@@ -321,6 +386,42 @@ const setupTabs = () => {
   });
 };
 
+const setupLogin = () => {
+  const form = $("[data-login-form]");
+  const logout = $("[data-logout]");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setLoginNote("Checking...");
+
+    const password = new FormData(form).get("password");
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || "Invalid admin password.");
+      }
+
+      storeAdminToken(result.token, result.expiresInMs);
+      form.reset();
+      unlockAdmin();
+      await loadSite();
+    } catch (error) {
+      setLoginNote(error.message || "Unable to unlock admin.");
+    }
+  });
+
+  logout.addEventListener("click", () => {
+    lockAdmin("Admin locked.");
+  });
+};
+
 const setupRawJson = () => {
   $("[data-apply-json]").addEventListener("click", () => {
     try {
@@ -335,5 +436,15 @@ const setupRawJson = () => {
 
 setupTabs();
 setupRawJson();
+setupLogin();
 $("[data-save]").addEventListener("click", saveSite);
-loadSite().catch((error) => setStatus(error.message || "Unable to load.", "error"));
+
+adminToken = getStoredAdminToken();
+if (adminToken) {
+  unlockAdmin();
+  loadSite().catch((error) => {
+    setStatus(error.message || "Unable to load.", "error");
+  });
+} else {
+  lockAdmin();
+}

@@ -5,6 +5,8 @@ const crypto = require("node:crypto");
 const initialSite = require("./data/site");
 
 const PORT = Number(process.env.PORT || 3000);
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "150680";
+const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ASSETS_DIR = path.join(ROOT, "assets");
@@ -13,6 +15,7 @@ const SITE_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
 const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json");
 const MAX_BODY_BYTES = 1024 * 512;
 let siteState = initialSite;
+const adminSessions = new Map();
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -41,6 +44,43 @@ const sendJson = (res, status, payload) => {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store"
   });
+};
+
+const getHeader = (req, name) => {
+  const value = req.headers[name.toLowerCase()];
+  return Array.isArray(value) ? value[0] : value || "";
+};
+
+const getAdminToken = (req) => {
+  const auth = getHeader(req, "authorization");
+  if (auth.toLowerCase().startsWith("bearer ")) {
+    return auth.slice(7).trim();
+  }
+
+  return getHeader(req, "x-admin-token").trim();
+};
+
+const pruneAdminSessions = () => {
+  const now = Date.now();
+  for (const [token, session] of adminSessions) {
+    if (session.expiresAt <= now) adminSessions.delete(token);
+  }
+};
+
+const isAdminAuthorized = (req) => {
+  pruneAdminSessions();
+  const session = adminSessions.get(getAdminToken(req));
+  return Boolean(session && session.expiresAt > Date.now());
+};
+
+const createAdminSession = () => {
+  pruneAdminSessions();
+  const token = crypto.randomBytes(32).toString("base64url");
+  adminSessions.set(token, {
+    createdAt: Date.now(),
+    expiresAt: Date.now() + ADMIN_SESSION_MS
+  });
+  return token;
 };
 
 const readJsonBody = (req) =>
@@ -205,6 +245,28 @@ const handleInquiry = async (req, res) => {
   }
 };
 
+const handleAdminLogin = async (req, res) => {
+  try {
+    const payload = await readJsonBody(req);
+
+    if (String(payload.password || "") !== ADMIN_PASSWORD) {
+      sendJson(res, 401, { ok: false, message: "Invalid admin password." });
+      return;
+    }
+
+    sendJson(res, 200, {
+      ok: true,
+      token: createAdminSession(),
+      expiresInMs: ADMIN_SESSION_MS
+    });
+  } catch (error) {
+    sendJson(res, 400, {
+      ok: false,
+      message: error.message || "Unable to sign in."
+    });
+  }
+};
+
 const isInsideDirectory = (filePath, directory) => {
   const relative = path.relative(directory, filePath);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
@@ -272,7 +334,17 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (method === "POST" && requestUrl.pathname === "/api/admin/login") {
+    await handleAdminLogin(req, res);
+    return;
+  }
+
   if (method === "PUT" && requestUrl.pathname === "/api/site") {
+    if (!isAdminAuthorized(req)) {
+      sendJson(res, 401, { ok: false, message: "Admin password required." });
+      return;
+    }
+
     try {
       const payload = await readJsonBody(req);
       await saveSiteContent(payload);

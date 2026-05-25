@@ -12,19 +12,34 @@
     />
     <link rel="stylesheet" href="/admin.css" />
   </head>
-  <body>
-    <header class="admin-topbar">
+  <body class="is-locked">
+    <section class="admin-login" data-admin-login>
+      <form class="login-card" data-login-form>
+        <span class="login-mark">TR</span>
+        <p>Private Site Control</p>
+        <h1>Enter admin password.</h1>
+        <label>
+          Password
+          <input type="password" name="password" inputmode="numeric" autocomplete="current-password" required autofocus />
+        </label>
+        <button type="submit">Unlock Admin</button>
+        <div class="login-note" data-login-note></div>
+      </form>
+    </section>
+
+    <header class="admin-topbar" data-admin-app>
       <a class="admin-brand" href="/">
         <span>TR</span>
         <strong>Site Control</strong>
       </a>
       <nav>
         <a href="/" target="_blank" rel="noopener">View Site</a>
+        <button class="ghost-button" type="button" data-logout>Lock</button>
         <button type="button" data-save>Save Changes</button>
       </nav>
     </header>
 
-    <main class="admin-shell">
+    <main class="admin-shell" data-admin-app>
       <aside class="admin-sidebar">
         <p>Content Areas</p>
         <button class="is-active" type="button" data-tab-button="brand">Brand</button>

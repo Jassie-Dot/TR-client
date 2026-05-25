@@ -9,7 +9,7 @@
     "build:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --minify",
     "build": "npm run build:css",
     "watch:css": "tailwindcss -i ./src/styles.css -o ./public/styles.css --watch",
-    "check": "node --check server.js && node --check public/app.js && node --check public/admin.js"
+    "check": "node --check server.js && node --check api/index.js && node --check public/app.js && node --check public/admin.js"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

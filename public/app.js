@@ -18,14 +18,36 @@ const iconFor = (category = "") => {
   return "OPS";
 };
 
-const setProgress = () => {
+const setupScrollControls = () => {
   const progress = $("[data-scroll-progress]");
   const toTop = $("[data-to-top]");
-  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-  const percent = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+  let frame = 0;
+  let isToTopVisible = !toTop?.classList.contains("hidden");
 
-  if (progress) progress.style.width = `${Math.min(percent, 100)}%`;
-  if (toTop) toTop.classList.toggle("hidden", window.scrollY < 640);
+  const update = () => {
+    frame = 0;
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const ratio = scrollable > 0 ? Math.min(window.scrollY / scrollable, 1) : 0;
+
+    if (progress) progress.style.transform = `scaleX(${ratio})`;
+
+    if (toTop) {
+      const shouldShowToTop = window.scrollY >= 640;
+      if (shouldShowToTop !== isToTopVisible) {
+        isToTopVisible = shouldShowToTop;
+        toTop.classList.toggle("hidden", !shouldShowToTop);
+      }
+    }
+  };
+
+  const scheduleUpdate = () => {
+    if (!frame) frame = window.requestAnimationFrame(update);
+  };
+
+  window.addEventListener("scroll", scheduleUpdate, { passive: true });
+  window.addEventListener("resize", scheduleUpdate, { passive: true });
+  toTop?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  update();
 };
 
 const setupTheme = () => {
@@ -43,7 +65,7 @@ const setupTheme = () => {
     window.setTimeout(() => {
       document.body.classList.remove("theme-switching");
       document.documentElement.classList.remove("theme-switching");
-    }, 720);
+    }, 460);
   };
 
   const applyTheme = (theme, animate = false) => {
@@ -112,7 +134,7 @@ const setupReveal = () => {
     : null;
 
   items.forEach((item, index) => {
-    item.style.transitionDelay = `${Math.min(index * 14, 84)}ms`;
+    item.style.transitionDelay = `${Math.min(index * 8, 40)}ms`;
     if (observer) observer.observe(item);
     else item.classList.add("is-visible");
   });
@@ -167,16 +189,19 @@ const renderHero = ({ brand, hero, metrics, services = [] }) => {
       .join("");
   }
 
-  $("[data-metric-strip]").innerHTML = (metrics || [])
-    .map(
-      (metric) => `
-        <div class="metric-cell border-b p-6 md:border-b-0 md:border-r last:border-r-0">
-          <strong class="block font-display text-3xl font-black">${escapeHtml(metric.value)}</strong>
-          <span class="metric-label mt-2 block text-sm font-black uppercase tracking-[.12em]">${escapeHtml(metric.label)}</span>
-        </div>
-      `
-    )
-    .join("");
+  const metricStrip = $("[data-metric-strip]");
+  if (metricStrip) {
+    metricStrip.innerHTML = (metrics || [])
+      .map(
+        (metric) => `
+          <div class="metric-cell border-b p-6 md:border-b-0 md:border-r last:border-r-0">
+            <strong class="block font-display text-3xl font-black">${escapeHtml(metric.value)}</strong>
+            <span class="metric-label mt-2 block text-sm font-black uppercase tracking-[.12em]">${escapeHtml(metric.label)}</span>
+          </div>
+        `
+      )
+      .join("");
+  }
 };
 
 const setText = (selector, value) => {
@@ -404,15 +429,38 @@ const setupContact = ({ brand, services }) => {
 };
 
 const setupTilt = () => {
+  const canTilt =
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+    !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!canTilt) return;
+
   $$(".service-feature-card, .service-mini-card, .case-card, .dispatch-card").forEach((card) => {
+    let frame = 0;
+    let rect;
+    let nextTransform = "";
+
+    const applyTilt = () => {
+      frame = 0;
+      card.style.transform = nextTransform;
+    };
+
+    card.addEventListener("pointerenter", () => {
+      rect = card.getBoundingClientRect();
+    });
+
     card.addEventListener("pointermove", (event) => {
-      const rect = card.getBoundingClientRect();
+      rect ||= card.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `perspective(900px) rotateX(${y * -2.4}deg) rotateY(${x * 2.4}deg) translateY(-4px)`;
+      nextTransform = `perspective(900px) rotateX(${y * -2.4}deg) rotateY(${x * 2.4}deg) translateY(-4px)`;
+      if (!frame) frame = window.requestAnimationFrame(applyTilt);
     });
 
     card.addEventListener("pointerleave", () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      rect = null;
       card.style.transform = "";
     });
   });
@@ -427,9 +475,7 @@ const loadSite = async () => {
 const boot = async () => {
   setupTheme();
   setupMenu();
-  window.addEventListener("scroll", setProgress, { passive: true });
-  $("[data-to-top]").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-  setProgress();
+  setupScrollControls();
 
   try {
     const site = await loadSite();

@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "functions": {
+    "server.js": {
+      "includeFiles": [
+        "public/**",
+        "assets/**",
+        "data/**"
+      ]
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/server.js"
+    }
+  ]
+}

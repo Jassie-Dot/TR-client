@@ -7,6 +7,7 @@ const initialSite = require("./data/site");
 const PORT = Number(process.env.PORT || 3000);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "150680";
 const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
+const CAN_PERSIST_DATA = !process.env.VERCEL;
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const ASSETS_DIR = path.join(ROOT, "assets");
@@ -15,6 +16,7 @@ const SITE_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
 const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json");
 const MAX_BODY_BYTES = 1024 * 512;
 let siteState = initialSite;
+let siteContentReady = null;
 const adminSessions = new Map();
 
 const mimeTypes = new Map([
@@ -116,10 +118,15 @@ const readJsonBody = (req) =>
   });
 
 const writeJsonFile = async (filePath, payload) => {
+  if (!CAN_PERSIST_DATA) {
+    return false;
+  }
+
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   const tempPath = `${filePath}.${Date.now()}.tmp`;
   await fs.writeFile(tempPath, `${JSON.stringify(payload, null, 2)}\n`);
   await fs.rename(tempPath, filePath);
+  return true;
 };
 
 const loadSiteContent = async () => {
@@ -135,6 +142,14 @@ const loadSiteContent = async () => {
     siteState = initialSite;
     await writeJsonFile(SITE_CONTENT_FILE, siteState);
   }
+};
+
+const ensureSiteContent = () => {
+  if (!siteContentReady) {
+    siteContentReady = loadSiteContent();
+  }
+
+  return siteContentReady;
 };
 
 const validateSiteContent = (payload) => {
@@ -173,7 +188,7 @@ const validateSiteContent = (payload) => {
 const saveSiteContent = async (payload) => {
   validateSiteContent(payload);
   siteState = payload;
-  await writeJsonFile(SITE_CONTENT_FILE, siteState);
+  return writeJsonFile(SITE_CONTENT_FILE, siteState);
 };
 
 const sanitize = (value) => String(value || "").trim().slice(0, 800);
@@ -201,7 +216,7 @@ const saveInquiry = async (inquiry) => {
   }
 
   existing.unshift(inquiry);
-  await writeJsonFile(INQUIRIES_FILE, existing);
+  return writeJsonFile(INQUIRIES_FILE, existing);
 };
 
 const handleInquiry = async (req, res) => {
@@ -226,14 +241,14 @@ const handleInquiry = async (req, res) => {
       return;
     }
 
-    await saveInquiry(inquiry);
+    const persisted = await saveInquiry(inquiry);
 
     const whatsappText = createWhatsAppMessage(inquiry);
     const whatsappUrl = `https://wa.me/${siteState.brand.whatsapp}?text=${encodeURIComponent(whatsappText)}`;
 
     sendJson(res, 201, {
       ok: true,
-      message: "Inquiry saved successfully.",
+      message: persisted ? "Inquiry saved successfully." : "Inquiry received. Continue on WhatsApp.",
       inquiry,
       whatsappUrl
     });
@@ -320,7 +335,9 @@ const serveStatic = async (req, res, urlPath) => {
   }
 };
 
-const server = http.createServer(async (req, res) => {
+const handleRequest = async (req, res) => {
+  await ensureSiteContent();
+
   const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const method = req.method || "GET";
 
@@ -347,8 +364,13 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const payload = await readJsonBody(req);
-      await saveSiteContent(payload);
-      sendJson(res, 200, { ok: true, message: "Site content saved.", site: siteState });
+      const persisted = await saveSiteContent(payload);
+      sendJson(res, 200, {
+        ok: true,
+        persisted,
+        message: persisted ? "Site content saved." : "Site content updated for this runtime.",
+        site: siteState
+      });
     } catch (error) {
       sendJson(res, 400, { ok: false, message: error.message || "Unable to save site content." });
     }
@@ -374,13 +396,17 @@ const server = http.createServer(async (req, res) => {
   }
 
   await serveStatic(req, res, requestUrl.pathname);
-});
+};
 
-loadSiteContent().then(() => {
-  server.listen(PORT, () => {
-    console.log(`TR Enterprises is running at http://127.0.0.1:${PORT}`);
+if (require.main === module) {
+  ensureSiteContent().then(() => {
+    http.createServer(handleRequest).listen(PORT, () => {
+      console.log(`TR Enterprises is running at http://127.0.0.1:${PORT}`);
+    });
+  }).catch((error) => {
+    console.error(`Unable to start TR Enterprises: ${error.message}`);
+    process.exitCode = 1;
   });
-}).catch((error) => {
-  console.error(`Unable to start TR Enterprises: ${error.message}`);
-  process.exitCode = 1;
-});
+}
+
+module.exports = handleRequest;

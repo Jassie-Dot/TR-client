@@ -119,6 +119,18 @@ const setupMenu = () => {
 
 const setupReveal = () => {
   const items = $$(".reveal");
+  const skipRevealMotion =
+    window.matchMedia("(max-width: 767px)").matches ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (skipRevealMotion) {
+    items.forEach((item) => {
+      item.style.transitionDelay = "0ms";
+      item.classList.add("is-visible");
+    });
+    return;
+  }
+
   const observer = "IntersectionObserver" in window
     ? new IntersectionObserver(
         (entries) => {

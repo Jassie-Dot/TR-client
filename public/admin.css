@@ -21,6 +21,8 @@
 
 body {
   min-width: 320px;
+  min-height: 100vh;
+  overflow-x: hidden;
   margin: 0;
   color: var(--text);
   background:
@@ -486,22 +488,235 @@ button {
 }
 
 @media (max-width: 520px) {
+  .admin-brand strong {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    background: linear-gradient(180deg, #071018, #101821 58%, #070b10);
+  }
+
+  body::before,
+  .admin-login::before {
+    display: none;
+  }
+
+  body.is-locked {
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .admin-login {
+    min-height: 100dvh;
+    padding: 16px;
+  }
+
+  .login-card {
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+    backdrop-filter: none;
+  }
+
+  .login-card h1 {
+    font-size: clamp(1.85rem, 12vw, 2.7rem);
+  }
+
   .admin-topbar {
-    align-items: stretch;
-    flex-direction: column;
-    padding-block: 14px;
+    display: grid;
+    min-height: 0;
+    gap: 10px;
+    padding: 12px 12px 10px;
+    background: rgba(7, 12, 18, 0.96);
+    backdrop-filter: none;
+  }
+
+  .admin-brand {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-brand span {
+    width: 38px;
+    height: 38px;
+    box-shadow: none;
   }
 
   .admin-topbar nav {
+    display: grid;
     width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .admin-topbar a,
+  .admin-topbar button,
+  .admin-sidebar button,
+  .panel-title button,
+  .item-actions button {
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    backdrop-filter: none;
   }
 
   .admin-topbar a,
   .admin-topbar button {
-    flex: 1;
+    display: inline-grid;
+    min-width: 0;
+    place-items: center;
+    padding: 0 8px;
+    white-space: nowrap;
+  }
+
+  .admin-shell {
+    width: 100%;
+    gap: 12px;
+    padding: 12px 12px 36px;
   }
 
   .admin-sidebar {
-    grid-template-columns: 1fr;
+    position: sticky;
+    top: 112px;
+    z-index: 15;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(7, 12, 18, 0.96);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+    backdrop-filter: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-sidebar p {
+    display: none;
+  }
+
+  .admin-sidebar button {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .admin-head,
+  .editor-panel,
+  .editor-item,
+  .admin-sidebar {
+    border-radius: 8px;
+  }
+
+  .admin-head,
+  .editor-panel,
+  .editor-item,
+  .login-card {
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+  }
+
+  .admin-head,
+  .editor-panel,
+  .editor-item {
+    padding: 14px;
+    backdrop-filter: none;
+  }
+
+  .admin-head h1 {
+    font-size: clamp(1.55rem, 8vw, 2.4rem);
+    line-height: 1.08;
+  }
+
+  .admin-status {
+    width: 100%;
+    max-width: none;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .panel-title {
+    gap: 10px;
+  }
+
+  .panel-title button {
+    width: 100%;
+  }
+
+  .editor-list {
+    gap: 12px;
+  }
+
+  .editor-item {
+    content-visibility: auto;
+    contain-intrinsic-size: 360px;
+  }
+
+  .item-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .item-actions strong {
+    overflow-wrap: anywhere;
+  }
+
+  .item-actions button {
+    width: 100%;
+  }
+
+  .field-grid,
+  .item-grid {
+    gap: 12px;
+  }
+
+  .field label {
+    line-height: 1.35;
+  }
+
+  .field input,
+  .field textarea,
+  .raw-json,
+  .login-card input {
+    border-radius: 8px;
+    font-size: 16px;
+    backdrop-filter: none;
+  }
+
+  .field input,
+  .login-card input {
+    min-height: 48px;
+  }
+
+  .field textarea {
+    min-height: 126px;
+  }
+
+  .raw-json {
+    min-height: 58vh;
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .admin-topbar a,
+  .admin-topbar button,
+  .admin-sidebar button,
+  .panel-title button,
+  .item-actions button {
+    font-size: 0.74rem;
+  }
+
+  .admin-topbar nav {
+    gap: 6px;
   }
 }

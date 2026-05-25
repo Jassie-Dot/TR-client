@@ -393,6 +393,13 @@ const setupTabs = () => {
       $$("[data-tab-panel]").forEach((panel) => panel.classList.remove("is-active"));
       button.classList.add("is-active");
       $(`[data-tab-panel="${button.dataset.tabButton}"]`).classList.add("is-active");
+      const nav = button.closest(".admin-sidebar");
+      if (nav) {
+        nav.scrollTo({
+          left: button.offsetLeft - (nav.clientWidth - button.offsetWidth) / 2,
+          behavior: "auto"
+        });
+      }
     });
   });
 };

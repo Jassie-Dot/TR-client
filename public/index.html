@@ -23,7 +23,8 @@
         document.documentElement.dataset.theme = "dark";
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=premium-11" />
+    <link rel="stylesheet" href="/styles.css?v=premium-12" />
+    <link rel="stylesheet" href="/hero-overrides.css?v=premium-12" />
   </head>
   <body class="theme-body font-body selection:bg-signal-amber selection:text-coal-950">
     <div class="fixed left-0 top-0 z-[90] h-1 w-0 bg-brand-metal shadow-glow" data-scroll-progress></div>
@@ -85,7 +86,7 @@
         <div class="hero-backdrop absolute inset-0"></div>
         <img
           class="hero-background-image"
-          src="/assets/images/industrial-maintenance.png"
+          src="/assets/images/hero-solar-maintenance.png"
           alt=""
           data-hero-image
           fetchpriority="high"
@@ -95,7 +96,7 @@
         <div class="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[var(--page-bg)] to-transparent"></div>
         <div class="hero-angle" aria-hidden="true"></div>
 
-        <div class="hero-layout relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:px-8">
+        <div class="hero-layout relative mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.64fr)] lg:px-8">
           <div class="hero-copy-panel reveal flex flex-col justify-center">
             <p class="eyebrow" data-hero-eyebrow>Solar. Industrial. Manpower.</p>
             <h1 class="hero-title mt-5 font-display font-black leading-[1.02] tracking-normal" data-hero-title>
@@ -109,6 +110,18 @@
               <a class="btn-secondary" href="#services">Explore Services</a>
             </div>
             <div class="mt-7 flex flex-wrap gap-3" data-hero-chips></div>
+          </div>
+
+          <div class="hero-visual reveal" aria-label="Operational highlights">
+            <div class="hero-command-map">
+              <div class="hero-map-heading">
+                <span><i class="hero-status-dot" aria-hidden="true"></i> Response desk</span>
+                <strong>Field Ops</strong>
+              </div>
+              <div class="hero-service-stack" data-hero-services></div>
+            </div>
+
+            <div class="hero-metric-grid" data-hero-metrics></div>
           </div>
         </div>
       </section>
@@ -286,6 +299,6 @@
       </figure>
     </div>
 
-    <script src="/app.js?v=premium-11"></script>
+    <script src="/app.js?v=premium-12"></script>
   </body>
 </html>

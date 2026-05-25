@@ -53,6 +53,9 @@ const getHeader = (req, name) => {
   return Array.isArray(value) ? value[0] : value || "";
 };
 
+const normalizePathname = (pathname) =>
+  pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+
 const getAdminToken = (req) => {
   const auth = getHeader(req, "authorization");
   if (auth.toLowerCase().startsWith("bearer ")) {
@@ -362,23 +365,29 @@ const handleRequest = async (req, res) => {
 
   const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const method = req.method || "GET";
+  const pathname = normalizePathname(requestUrl.pathname);
 
-  if (method === "GET" && requestUrl.pathname === "/api/health") {
+  if (method === "GET" && pathname === "/api/health") {
     sendJson(res, 200, { ok: true, service: "TR Enterprises API", timestamp: new Date().toISOString() });
     return;
   }
 
-  if (method === "GET" && requestUrl.pathname === "/api/site") {
+  if (method === "GET" && pathname === "/api/site") {
     sendJson(res, 200, siteState);
     return;
   }
 
-  if (method === "POST" && requestUrl.pathname === "/api/admin/login") {
+  if (method === "POST" && pathname === "/api/admin/login") {
     await handleAdminLogin(req, res);
     return;
   }
 
-  if (method === "PUT" && requestUrl.pathname === "/api/site") {
+  if ((method === "GET" || method === "HEAD") && pathname === "/api/admin") {
+    await serveStatic(req, res, "/admin.html");
+    return;
+  }
+
+  if (method === "PUT" && pathname === "/api/site") {
     if (!isAdminAuthorized(req)) {
       sendJson(res, 401, { ok: false, message: "Admin password required." });
       return;
@@ -399,12 +408,12 @@ const handleRequest = async (req, res) => {
     return;
   }
 
-  if (method === "POST" && requestUrl.pathname === "/api/inquiries") {
+  if (method === "POST" && pathname === "/api/inquiries") {
     await handleInquiry(req, res);
     return;
   }
 
-  if (requestUrl.pathname.startsWith("/api/")) {
+  if (pathname.startsWith("/api/")) {
     sendJson(res, 404, { ok: false, message: "API route not found." });
     return;
   }
@@ -417,7 +426,12 @@ const handleRequest = async (req, res) => {
     return;
   }
 
-  await serveStatic(req, res, requestUrl.pathname);
+  if (pathname === "/admin") {
+    await serveStatic(req, res, "/admin.html");
+    return;
+  }
+
+  await serveStatic(req, res, pathname);
 };
 
 if (require.main === module) {

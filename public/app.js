@@ -31,8 +31,23 @@ const setProgress = () => {
 const setupTheme = () => {
   const toggles = $$("[data-theme-toggle]");
   const labels = $$("[data-theme-label]");
+  let canAnimateTheme = false;
 
-  const applyTheme = (theme) => {
+  const playThemeSwitch = () => {
+    if (!canAnimateTheme) return;
+    document.body.classList.remove("theme-switching");
+    document.documentElement.classList.remove("theme-switching");
+    void document.body.offsetWidth;
+    document.body.classList.add("theme-switching");
+    document.documentElement.classList.add("theme-switching");
+    window.setTimeout(() => {
+      document.body.classList.remove("theme-switching");
+      document.documentElement.classList.remove("theme-switching");
+    }, 720);
+  };
+
+  const applyTheme = (theme, animate = false) => {
+    if (animate) playThemeSwitch();
     document.documentElement.dataset.theme = theme;
     labels.forEach((label) => {
       label.textContent = theme === "dark" ? "Light" : "Dark";
@@ -48,11 +63,14 @@ const setupTheme = () => {
   };
 
   applyTheme(document.documentElement.dataset.theme || "dark");
+  window.setTimeout(() => {
+    canAnimateTheme = true;
+  }, 80);
 
   toggles.forEach((toggle) => {
     toggle.addEventListener("click", () => {
       const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-      applyTheme(current === "dark" ? "light" : "dark");
+      applyTheme(current === "dark" ? "light" : "dark", true);
     });
   });
 };
@@ -100,7 +118,7 @@ const setupReveal = () => {
   });
 };
 
-const renderHero = ({ brand, hero, metrics }) => {
+const renderHero = ({ brand, hero, metrics, services = [] }) => {
   $("[data-brand-short]").textContent = brand.shortName;
   $("[data-brand-name]").textContent = brand.name;
   $("[data-hero-eyebrow]").textContent = hero.eyebrow;
@@ -123,9 +141,26 @@ const renderHero = ({ brand, hero, metrics }) => {
     heroMetrics.innerHTML = (metrics || [])
       .map(
         (metric) => `
-          <div class="metric-card rounded-lg p-4">
-            <strong class="block font-display text-3xl font-black text-signal-amber">${escapeHtml(metric.value)}</strong>
-            <span class="metric-label mt-2 block text-sm font-bold leading-6">${escapeHtml(metric.label)}</span>
+          <div class="hero-metric-card">
+            <strong>${escapeHtml(metric.value)}</strong>
+            <span>${escapeHtml(metric.label)}</span>
+          </div>
+        `
+      )
+      .join("");
+  }
+
+  const heroServices = $("[data-hero-services]");
+  if (heroServices) {
+    const statuses = ["Ready crew", "Site check", "Quote line"];
+    heroServices.innerHTML = (services || [])
+      .slice(0, 3)
+      .map(
+        (service, index) => `
+          <div class="hero-service-lane">
+            <span>${String(index + 1).padStart(2, "0")}</span>
+            <strong>${escapeHtml(service.title)}</strong>
+            <em>${statuses[index] || "Active"}</em>
           </div>
         `
       )

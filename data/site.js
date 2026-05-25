@@ -10,11 +10,11 @@ const site = {
   },
   hero: {
     eyebrow: "Solar. Industrial. Manpower.",
-    title: "Site operations, refined.",
+    title: "Reliable crews for solar, plant, and site work.",
     text:
-      "Premium field teams for cleaner, safer, better-run sites.",
-    image: "/assets/images/industrial-maintenance.png",
-    chips: ["Safety-ready", "Delhi NCR", "Fast quote", "Recurring care"]
+      "TR Enterprises coordinates cleaning, manpower, inverter, and industrial support with fast handovers and cleaner site control.",
+    image: "/assets/images/hero-solar-maintenance.png",
+    chips: ["24h quote focus", "Safety-ready crews", "Delhi NCR", "Solar + plant care"]
   },
   sections: {
     marquee: [

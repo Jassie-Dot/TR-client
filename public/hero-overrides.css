@@ -1,0 +1,89 @@
+@media (min-width: 1024px) {
+  .hero-layout {
+    grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.64fr) !important;
+    gap: clamp(1.5rem, 4vw, 5rem) !important;
+  }
+
+  .hero-visual {
+    justify-self: end;
+  }
+}
+
+.hero-map-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.hero-status-dot {
+  display: inline-block;
+}
+
+body.theme-body::after {
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  z-index: 120;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.72);
+  background:
+    radial-gradient(circle at 82% 4.75rem, rgba(246, 182, 63, 0.42), transparent 28rem),
+    radial-gradient(circle at 52% 44%, rgba(22, 184, 212, 0.22), transparent 34rem);
+  mix-blend-mode: screen;
+}
+
+html[data-theme="light"] body.theme-body::after {
+  background:
+    radial-gradient(circle at 82% 4.75rem, rgba(255, 255, 255, 0.78), transparent 26rem),
+    radial-gradient(circle at 52% 44%, rgba(246, 182, 63, 0.2), transparent 34rem);
+  mix-blend-mode: normal;
+}
+
+body.theme-switching::after {
+  animation: themeSweep 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+html.theme-switching body.theme-body,
+html.theme-switching .site-header,
+html.theme-switching .mobile-nav,
+html.theme-switching .theme-section,
+html.theme-switching .theme-section-alt,
+html.theme-switching .section-pad::before,
+html.theme-switching .metric-cell,
+html.theme-switching .service-feature-card,
+html.theme-switching .service-mini-card,
+html.theme-switching .case-card,
+html.theme-switching .dispatch-card,
+html.theme-switching .review-card,
+html.theme-switching .review-feature,
+html.theme-switching .contact-shell,
+html.theme-switching .quote-console,
+html.theme-switching .field-input {
+  transition:
+    color 420ms ease,
+    background 420ms ease,
+    border-color 420ms ease,
+    box-shadow 420ms ease,
+    filter 420ms ease;
+}
+
+@keyframes themeSweep {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+    filter: blur(18px);
+  }
+
+  38% {
+    opacity: 0.86;
+    transform: scale(1);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.12);
+    filter: blur(12px);
+  }
+}

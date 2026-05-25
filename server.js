@@ -6,6 +6,7 @@ const initialSite = require("./data/site");
 
 const PORT = Number(process.env.PORT || 3000);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "150680";
+const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || ADMIN_PASSWORD;
 const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
 const CAN_PERSIST_DATA = !process.env.VERCEL;
 const ROOT = __dirname;
@@ -17,7 +18,6 @@ const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json");
 const MAX_BODY_BYTES = 1024 * 512;
 let siteState = initialSite;
 let siteContentReady = null;
-const adminSessions = new Map();
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -62,27 +62,49 @@ const getAdminToken = (req) => {
   return getHeader(req, "x-admin-token").trim();
 };
 
-const pruneAdminSessions = () => {
-  const now = Date.now();
-  for (const [token, session] of adminSessions) {
-    if (session.expiresAt <= now) adminSessions.delete(token);
-  }
+const signTokenPayload = (payload) =>
+  crypto
+    .createHmac("sha256", ADMIN_TOKEN_SECRET)
+    .update(payload)
+    .digest("base64url");
+
+const verifySignature = (payload, signature) => {
+  const expected = signTokenPayload(payload);
+  const actualBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+
+  return (
+    actualBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+  );
 };
 
 const isAdminAuthorized = (req) => {
-  pruneAdminSessions();
-  const session = adminSessions.get(getAdminToken(req));
-  return Boolean(session && session.expiresAt > Date.now());
+  const token = getAdminToken(req);
+  const [payload, signature] = token.split(".");
+
+  if (!payload || !signature || !verifySignature(payload, signature)) {
+    return false;
+  }
+
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    return session.scope === "admin" && Number(session.expiresAt) > Date.now();
+  } catch {
+    return false;
+  }
 };
 
 const createAdminSession = () => {
-  pruneAdminSessions();
-  const token = crypto.randomBytes(32).toString("base64url");
-  adminSessions.set(token, {
-    createdAt: Date.now(),
-    expiresAt: Date.now() + ADMIN_SESSION_MS
-  });
-  return token;
+  const payload = Buffer.from(
+    JSON.stringify({
+      scope: "admin",
+      createdAt: Date.now(),
+      expiresAt: Date.now() + ADMIN_SESSION_MS
+    })
+  ).toString("base64url");
+
+  return `${payload}.${signTokenPayload(payload)}`;
 };
 
 const readJsonBody = (req) =>
@@ -314,7 +336,7 @@ const serveStatic = async (req, res, urlPath) => {
   const filePath = resolveStaticPath(urlPath);
 
   if (!filePath) {
-    send(res, 403, "Forbidden", { "Content-Type": "text/plain; charset=utf-8" });
+    send(res, 403, "Forbidden", { "Content-Type": "text/plain; charset=utf-8" }, req.method);
     return;
   }
 
@@ -327,11 +349,11 @@ const serveStatic = async (req, res, urlPath) => {
     }, req.method);
   } catch {
     if (!path.extname(urlPath)) {
-      serveStatic(req, res, "/index.html");
+      await serveStatic(req, res, "/index.html");
       return;
     }
 
-    send(res, 404, "Not found", { "Content-Type": "text/plain; charset=utf-8" });
+    send(res, 404, "Not found", { "Content-Type": "text/plain; charset=utf-8" }, req.method);
   }
 };
 
@@ -391,7 +413,7 @@ const handleRequest = async (req, res) => {
     send(res, 405, "Method not allowed", {
       "Allow": "GET, HEAD",
       "Content-Type": "text/plain; charset=utf-8"
-    });
+    }, method);
     return;
   }
 

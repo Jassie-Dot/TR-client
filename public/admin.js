@@ -132,7 +132,7 @@ const field = ({ label, value, path, type = "input", full = false }) => {
   return `
     <div class="field ${full || tag === "textarea" ? "full" : ""}">
       <label>${label}${hint}</label>
-      <${tag} data-path="${path}">${tag === "textarea" ? currentValue : ""}</${tag}>
+      <${tag} data-path="${path}">${tag === "textarea" ? escapeHtml(currentValue) : ""}</${tag}>
     </div>
   `.replace("<input", `<input value="${escapeAttribute(currentValue)}"`);
 };
@@ -141,6 +141,12 @@ const escapeAttribute = (value) =>
   String(value)
     .replaceAll("&", "&amp;")
     .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+const escapeHtml = (value) =>
+  String(value)
+    .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
 
@@ -369,7 +375,12 @@ const saveSite = async () => {
     if (!response.ok || !result.ok) throw new Error(result.message || "Unable to save.");
     site = result.site;
     renderAll();
-    setStatus("Saved. Refresh the site to see changes.", "ok");
+    setStatus(
+      result.persisted
+        ? "Saved. Refresh the site to see changes."
+        : "Saved for this runtime. Add persistent storage before relying on admin edits in production.",
+      "ok"
+    );
   } catch (error) {
     setStatus(error.message || "Unable to save.", "error");
   }

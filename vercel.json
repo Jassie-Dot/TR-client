@@ -3,11 +3,7 @@
   "buildCommand": "npm run build",
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "public/**",
-        "assets/**",
-        "data/**"
-      ]
+      "includeFiles": "{public/**,assets/**,data/**}"
     }
   },
   "rewrites": [

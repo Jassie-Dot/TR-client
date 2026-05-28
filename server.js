@@ -6,6 +6,7 @@ const initialSite = require("./data/site");
 
 const PORT = Number(process.env.PORT || 3000);
 const IS_PRODUCTION = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+const ALLOW_VERCEL_LIVE = Boolean(process.env.VERCEL) && process.env.DISABLE_VERCEL_LIVE !== "1";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || (IS_PRODUCTION ? "" : crypto.randomBytes(32).toString("base64url"));
 const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
@@ -64,7 +65,8 @@ const securityHeaders = {
     "font-src 'self' https://fonts.gstatic.com",
     "style-src 'self' https://fonts.googleapis.com",
     "script-src 'self'",
-    "connect-src 'self'",
+    `script-src-elem 'self'${ALLOW_VERCEL_LIVE ? " https://vercel.live" : ""}`,
+    `connect-src 'self'${ALLOW_VERCEL_LIVE ? " https://vercel.live" : ""}`,
     ...(IS_PRODUCTION ? ["upgrade-insecure-requests"] : [])
   ].join("; ")
 };
@@ -490,6 +492,10 @@ const resolveStaticPath = (urlPath) => {
   }
 
   const cleanPath = decoded === "/" ? "index.html" : decoded.replace(/^\/+/, "");
+
+  if (cleanPath === "favicon.ico") {
+    return resolveFromDirectory(PUBLIC_DIR, "favicon.svg");
+  }
 
   if (cleanPath.startsWith("assets/")) {
     return resolveFromDirectory(ASSETS_DIR, cleanPath.replace(/^assets\//, ""));

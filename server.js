@@ -63,10 +63,11 @@ const securityHeaders = {
     "object-src 'none'",
     "img-src 'self' data:",
     "font-src 'self' https://fonts.gstatic.com",
-    "style-src 'self' https://fonts.googleapis.com",
+    `style-src 'self' https://fonts.googleapis.com${ALLOW_VERCEL_LIVE ? " 'unsafe-inline'" : ""}`,
     "script-src 'self'",
     `script-src-elem 'self'${ALLOW_VERCEL_LIVE ? " https://vercel.live" : ""}`,
     `connect-src 'self'${ALLOW_VERCEL_LIVE ? " https://vercel.live" : ""}`,
+    `frame-src 'self'${ALLOW_VERCEL_LIVE ? " https://vercel.live" : ""}`,
     ...(IS_PRODUCTION ? ["upgrade-insecure-requests"] : [])
   ].join("; ")
 };

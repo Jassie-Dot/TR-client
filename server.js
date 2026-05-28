@@ -5,9 +5,11 @@ const crypto = require("node:crypto");
 const initialSite = require("./data/site");
 
 const PORT = Number(process.env.PORT || 3000);
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "150680";
-const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || ADMIN_PASSWORD;
+const IS_PRODUCTION = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const ADMIN_TOKEN_SECRET = process.env.ADMIN_TOKEN_SECRET || (IS_PRODUCTION ? "" : crypto.randomBytes(32).toString("base64url"));
 const ADMIN_SESSION_MS = 1000 * 60 * 60 * 12;
+const ADMIN_COOKIE_NAME = IS_PRODUCTION ? "__Host-tr_admin_session" : "tr_admin_session";
 const CAN_PERSIST_DATA = !process.env.VERCEL;
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -16,8 +18,20 @@ const DATA_DIR = path.join(ROOT, "data");
 const SITE_CONTENT_FILE = path.join(DATA_DIR, "site-content.json");
 const INQUIRIES_FILE = path.join(DATA_DIR, "inquiries.json");
 const MAX_BODY_BYTES = 1024 * 512;
+const PUBLIC_SITE_PLACEHOLDER = "__TR_SITE_DATA__";
+const LOGIN_LIMIT = { limit: 6, windowMs: 15 * 60 * 1000 };
+const INQUIRY_LIMIT = { limit: 8, windowMs: 60 * 60 * 1000 };
 let siteState = initialSite;
 let siteContentReady = null;
+const rateLimitStore = new Map();
+
+if (!ADMIN_PASSWORD) {
+  console.warn("ADMIN_PASSWORD is not configured. Admin login is disabled.");
+}
+
+if (!ADMIN_TOKEN_SECRET) {
+  console.warn("ADMIN_TOKEN_SECRET is not configured. Admin login is disabled.");
+}
 
 const mimeTypes = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -32,19 +46,42 @@ const mimeTypes = new Map([
   [".ico", "image/x-icon"]
 ]);
 
+const securityHeaders = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Resource-Policy": "same-origin",
+  ...(IS_PRODUCTION ? { "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload" } : {}),
+  "Content-Security-Policy": [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "object-src 'none'",
+    "img-src 'self' data:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' https://fonts.googleapis.com",
+    "script-src 'self'",
+    "connect-src 'self'",
+    ...(IS_PRODUCTION ? ["upgrade-insecure-requests"] : [])
+  ].join("; ")
+};
+
 const send = (res, status, body, headers = {}, method = "GET") => {
   res.writeHead(status, {
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
+    ...securityHeaders,
     ...headers
   });
   res.end(method === "HEAD" ? undefined : body);
 };
 
-const sendJson = (res, status, payload) => {
+const sendJson = (res, status, payload, headers = {}) => {
   send(res, status, JSON.stringify(payload), {
     "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store"
+    "Cache-Control": "no-store",
+    ...headers
   });
 };
 
@@ -53,16 +90,92 @@ const getHeader = (req, name) => {
   return Array.isArray(value) ? value[0] : value || "";
 };
 
+const parseCookies = (req) =>
+  getHeader(req, "cookie")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((cookies, part) => {
+      const separator = part.indexOf("=");
+      if (separator === -1) return cookies;
+
+      const name = part.slice(0, separator).trim();
+      const value = part.slice(separator + 1).trim();
+      try {
+        if (name) cookies[name] = decodeURIComponent(value);
+      } catch {
+        if (name) cookies[name] = "";
+      }
+      return cookies;
+    }, {});
+
+const createAdminCookie = (token, maxAgeSeconds = Math.floor(ADMIN_SESSION_MS / 1000)) => [
+  `${ADMIN_COOKIE_NAME}=${encodeURIComponent(token)}`,
+  "Path=/",
+  "HttpOnly",
+  "SameSite=Strict",
+  `Max-Age=${maxAgeSeconds}`,
+  ...(IS_PRODUCTION ? ["Secure"] : [])
+].join("; ");
+
+const clearAdminCookie = () => createAdminCookie("", 0);
+
+const getClientIp = (req) =>
+  getHeader(req, "x-forwarded-for").split(",")[0].trim() ||
+  req.socket?.remoteAddress ||
+  "unknown";
+
+const isRateLimited = (req, bucket, { limit, windowMs }) => {
+  const now = Date.now();
+  const key = `${bucket}:${getClientIp(req)}`;
+  const hits = (rateLimitStore.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+  hits.push(now);
+  rateLimitStore.set(key, hits);
+  return hits.length > limit;
+};
+
+const isSameOriginRequest = (req) => {
+  const host = getHeader(req, "host");
+  const origin = getHeader(req, "origin");
+  const referer = getHeader(req, "referer");
+
+  try {
+    if (origin) return new URL(origin).host === host;
+    if (referer) return new URL(referer).host === host;
+  } catch {
+    return false;
+  }
+
+  return false;
+};
+
+const rejectCrossOriginMutation = (req, res) => {
+  if (isSameOriginRequest(req)) return false;
+
+  sendJson(res, 403, {
+    ok: false,
+    message: "Cross-origin requests are not allowed."
+  });
+  return true;
+};
+
+const rejectNonJsonRequest = (req, res) => {
+  const contentType = getHeader(req, "content-type").split(";")[0].trim().toLowerCase();
+  if (contentType === "application/json") return false;
+
+  sendJson(res, 415, {
+    ok: false,
+    message: "Content-Type must be application/json."
+  });
+  return true;
+};
+
 const normalizePathname = (pathname) =>
   pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
 
 const getAdminToken = (req) => {
-  const auth = getHeader(req, "authorization");
-  if (auth.toLowerCase().startsWith("bearer ")) {
-    return auth.slice(7).trim();
-  }
-
-  return getHeader(req, "x-admin-token").trim();
+  const cookies = parseCookies(req);
+  return cookies[ADMIN_COOKIE_NAME] || "";
 };
 
 const signTokenPayload = (payload) =>
@@ -82,8 +195,21 @@ const verifySignature = (payload, signature) => {
   );
 };
 
+const timingSafeStringEqual = (actual, expected) => {
+  const actualBuffer = Buffer.from(String(actual));
+  const expectedBuffer = Buffer.from(String(expected));
+
+  return (
+    actualBuffer.length === expectedBuffer.length &&
+    crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+  );
+};
+
 const isAdminAuthorized = (req) => {
+  if (!ADMIN_TOKEN_SECRET) return false;
+
   const token = getAdminToken(req);
+  if (token.length > 4096) return false;
   const [payload, signature] = token.split(".");
 
   if (!payload || !signature || !verifySignature(payload, signature)) {
@@ -180,6 +306,12 @@ const ensureSiteContent = () => {
 const validateSiteContent = (payload) => {
   const requiredObjects = ["brand", "hero", "sections"];
   const requiredArrays = ["metrics", "services", "projects", "process", "testimonials", "gallery"];
+  const imagePaths = [
+    payload?.hero?.image,
+    ...(payload?.services || []).map((item) => item.image),
+    ...(payload?.projects || []).map((item) => item.image),
+    ...(payload?.gallery || []).map((item) => item.image)
+  ];
 
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     throw new Error("Site content must be a JSON object.");
@@ -205,10 +337,41 @@ const validateSiteContent = (payload) => {
     throw new Error("Hero title and text are required.");
   }
 
-  if (!payload.hero.image || !String(payload.hero.image).startsWith("/assets/")) {
-    throw new Error("Hero image must point to an asset path.");
+  for (const imagePath of imagePaths) {
+    if (!imagePath || !String(imagePath).startsWith("/assets/") || String(imagePath).includes("..")) {
+      throw new Error("All images must point to safe asset paths.");
+    }
   }
 };
+
+const pickFields = (source = {}, keys = []) =>
+  keys.reduce((result, key) => {
+    if (source[key] !== undefined) result[key] = source[key];
+    return result;
+  }, {});
+
+const getPublicSiteState = () => ({
+  brand: pickFields(siteState.brand, ["name", "shortName", "phone", "whatsapp", "location", "address"]),
+  hero: pickFields(siteState.hero, ["eyebrow", "title", "text", "image", "chips"]),
+  sections: siteState.sections,
+  metrics: siteState.metrics,
+  services: siteState.services,
+  projects: siteState.projects,
+  process: siteState.process,
+  testimonials: siteState.testimonials,
+  gallery: siteState.gallery
+});
+
+const serializeJsonForHtml = (payload) =>
+  JSON.stringify(payload)
+    .replaceAll("&", "\\u0026")
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
+
+const injectPublicSiteData = (html) =>
+  html.replace(PUBLIC_SITE_PLACEHOLDER, serializeJsonForHtml(getPublicSiteState()));
 
 const saveSiteContent = async (payload) => {
   validateSiteContent(payload);
@@ -274,7 +437,6 @@ const handleInquiry = async (req, res) => {
     sendJson(res, 201, {
       ok: true,
       message: persisted ? "Inquiry saved successfully." : "Inquiry received. Continue on WhatsApp.",
-      inquiry,
       whatsappUrl
     });
   } catch (error) {
@@ -289,15 +451,16 @@ const handleAdminLogin = async (req, res) => {
   try {
     const payload = await readJsonBody(req);
 
-    if (String(payload.password || "") !== ADMIN_PASSWORD) {
-      sendJson(res, 401, { ok: false, message: "Invalid admin password." });
+    if (!ADMIN_PASSWORD || !ADMIN_TOKEN_SECRET || !timingSafeStringEqual(payload.password || "", ADMIN_PASSWORD)) {
+      sendJson(res, 401, { ok: false, message: "Invalid admin credentials." });
       return;
     }
 
     sendJson(res, 200, {
       ok: true,
-      token: createAdminSession(),
       expiresInMs: ADMIN_SESSION_MS
+    }, {
+      "Set-Cookie": createAdminCookie(createAdminSession())
     });
   } catch (error) {
     sendJson(res, 400, {
@@ -344,12 +507,22 @@ const serveStatic = async (req, res, urlPath) => {
   }
 
   try {
-    const content = await fs.readFile(filePath);
     const ext = path.extname(filePath).toLowerCase();
-    send(res, 200, content, {
+    let content = await fs.readFile(filePath);
+    const responseHeaders = {
       "Content-Type": mimeTypes.get(ext) || "application/octet-stream",
       "Cache-Control": "no-store"
-    }, req.method);
+    };
+
+    if (ext === ".html" && path.basename(filePath) === "index.html") {
+      content = injectPublicSiteData(content.toString("utf8"));
+    }
+
+    if (ext === ".html" && path.basename(filePath) === "admin.html") {
+      responseHeaders["X-Robots-Tag"] = "noindex, nofollow, noarchive";
+    }
+
+    send(res, 200, content, responseHeaders, req.method);
   } catch {
     if (!path.extname(urlPath)) {
       await serveStatic(req, res, "/index.html");
@@ -367,31 +540,45 @@ const handleRequest = async (req, res) => {
   const method = req.method || "GET";
   const pathname = normalizePathname(requestUrl.pathname);
 
-  if (method === "GET" && pathname === "/api/health") {
+  if (method === "GET" && pathname === "/api/health" && process.env.ENABLE_HEALTHCHECK === "1") {
     sendJson(res, 200, { ok: true, service: "TR Enterprises API", timestamp: new Date().toISOString() });
     return;
   }
 
-  if (method === "GET" && pathname === "/api/site") {
-    sendJson(res, 200, siteState);
-    return;
-  }
-
   if (method === "POST" && pathname === "/api/admin/login") {
+    if (rejectCrossOriginMutation(req, res)) return;
+    if (rejectNonJsonRequest(req, res)) return;
+    if (isRateLimited(req, "admin-login", LOGIN_LIMIT)) {
+      sendJson(res, 429, { ok: false, message: "Too many login attempts. Try again later." });
+      return;
+    }
+
     await handleAdminLogin(req, res);
     return;
   }
 
-  if ((method === "GET" || method === "HEAD") && pathname === "/api/admin") {
-    await serveStatic(req, res, "/admin.html");
+  if (method === "POST" && pathname === "/api/admin/logout") {
+    if (rejectCrossOriginMutation(req, res)) return;
+
+    sendJson(res, 200, { ok: true }, {
+      "Set-Cookie": clearAdminCookie()
+    });
     return;
   }
 
-  if (method === "PUT" && pathname === "/api/site") {
+  if ((method === "GET" || method === "PUT") && pathname === "/api/site") {
     if (!isAdminAuthorized(req)) {
       sendJson(res, 401, { ok: false, message: "Admin password required." });
       return;
     }
+
+    if (method === "GET") {
+      sendJson(res, 200, siteState);
+      return;
+    }
+
+    if (rejectCrossOriginMutation(req, res)) return;
+    if (rejectNonJsonRequest(req, res)) return;
 
     try {
       const payload = await readJsonBody(req);
@@ -409,6 +596,13 @@ const handleRequest = async (req, res) => {
   }
 
   if (method === "POST" && pathname === "/api/inquiries") {
+    if (rejectCrossOriginMutation(req, res)) return;
+    if (rejectNonJsonRequest(req, res)) return;
+    if (isRateLimited(req, "inquiry", INQUIRY_LIMIT)) {
+      sendJson(res, 429, { ok: false, message: "Too many submissions. Please try again later." });
+      return;
+    }
+
     await handleInquiry(req, res);
     return;
   }

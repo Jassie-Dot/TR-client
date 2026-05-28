@@ -1,45 +1,7 @@
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-const ADMIN_TOKEN_KEY = "tr-admin-token";
-const ADMIN_EXPIRES_KEY = "tr-admin-expires";
 let site = null;
-let adminToken = "";
-
-const getStoredAdminToken = () => {
-  try {
-    const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || "";
-    const expiresAt = Number(sessionStorage.getItem(ADMIN_EXPIRES_KEY) || 0);
-    if (!token || expiresAt <= Date.now()) {
-      sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-      sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
-      return "";
-    }
-    return token;
-  } catch {
-    return "";
-  }
-};
-
-const storeAdminToken = (token, expiresInMs) => {
-  adminToken = token;
-  try {
-    sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
-    sessionStorage.setItem(ADMIN_EXPIRES_KEY, String(Date.now() + expiresInMs));
-  } catch {
-    // Admin still works for the current page if storage is blocked.
-  }
-};
-
-const clearAdminToken = () => {
-  adminToken = "";
-  try {
-    sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-    sessionStorage.removeItem(ADMIN_EXPIRES_KEY);
-  } catch {
-    // Nothing to clear.
-  }
-};
 
 const setLoginNote = (message = "", type = "") => {
   const note = $("[data-login-note]");
@@ -48,7 +10,6 @@ const setLoginNote = (message = "", type = "") => {
 };
 
 const lockAdmin = (message = "") => {
-  clearAdminToken();
   document.body.classList.add("is-locked");
   setLoginNote(message);
   $("[name='password']")?.focus();
@@ -155,6 +116,13 @@ const setStatus = (message, type = "") => {
   status.textContent = message;
   status.className = `admin-status ${type ? `is-${type}` : ""}`;
 };
+
+const fetchAdmin = (url, options = {}) =>
+  fetch(url, {
+    ...options,
+    credentials: "same-origin",
+    headers: options.headers || {}
+  });
 
 const getPath = (path) =>
   path.split(".").reduce((current, key) => {
@@ -347,7 +315,7 @@ const renderAll = () => {
 };
 
 const loadSite = async () => {
-  const response = await fetch("/api/site");
+  const response = await fetchAdmin("/api/site");
   if (!response.ok) throw new Error("Unable to load site data.");
   site = await response.json();
   renderAll();
@@ -357,12 +325,9 @@ const loadSite = async () => {
 const saveSite = async () => {
   setStatus("Saving...");
   try {
-    const response = await fetch("/api/site", {
+    const response = await fetchAdmin("/api/site", {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${adminToken}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(site)
     });
     const result = await response.json();
@@ -415,7 +380,7 @@ const setupLogin = () => {
     const password = new FormData(form).get("password");
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetchAdmin("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password })
@@ -426,16 +391,20 @@ const setupLogin = () => {
         throw new Error(result.message || "Invalid admin password.");
       }
 
-      storeAdminToken(result.token, result.expiresInMs);
       form.reset();
-      unlockAdmin();
       await loadSite();
+      unlockAdmin();
     } catch (error) {
       setLoginNote(error.message || "Unable to unlock admin.");
     }
   });
 
-  logout.addEventListener("click", () => {
+  logout.addEventListener("click", async () => {
+    try {
+      await fetchAdmin("/api/admin/logout", { method: "POST" });
+    } catch {
+      // The local lock still clears the admin UI even if the network is interrupted.
+    }
     lockAdmin("Admin locked.");
   });
 };
@@ -457,12 +426,6 @@ setupRawJson();
 setupLogin();
 $("[data-save]").addEventListener("click", saveSite);
 
-adminToken = getStoredAdminToken();
-if (adminToken) {
-  unlockAdmin();
-  loadSite().catch((error) => {
-    setStatus(error.message || "Unable to load.", "error");
-  });
-} else {
-  lockAdmin();
-}
+loadSite()
+  .then(unlockAdmin)
+  .catch(() => lockAdmin());

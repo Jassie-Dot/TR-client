@@ -14,15 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
-    <script>
-      try {
-        const savedTheme = localStorage.getItem("tr-theme");
-        const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-        document.documentElement.dataset.theme = savedTheme || (prefersLight ? "light" : "dark");
-      } catch {
-        document.documentElement.dataset.theme = "dark";
-      }
-    </script>
+    <script src="/theme-init.js?v=security-1"></script>
     <link rel="stylesheet" href="/styles.css?v=premium-14" />
     <link rel="stylesheet" href="/hero-overrides.css?v=premium-14" />
   </head>
@@ -295,6 +287,7 @@
       </figure>
     </div>
 
-    <script src="/app.js?v=premium-14"></script>
+    <template id="site-data" data-site-data>__TR_SITE_DATA__</template>
+    <script src="/app.js?v=security-2"></script>
   </body>
 </html>

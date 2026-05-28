@@ -478,10 +478,19 @@ const setupTilt = () => {
   });
 };
 
-const loadSite = async () => {
-  const response = await fetch("/api/site");
-  if (!response.ok) throw new Error("Unable to load site data.");
-  return response.json();
+const loadSite = () => {
+  const dataNode = $("[data-site-data]");
+  if (!dataNode) throw new Error("Site data was not embedded by the server.");
+
+  try {
+    const site = JSON.parse((dataNode.content?.textContent || dataNode.textContent || "{}").trim());
+    if (!site.brand || !site.hero || !site.sections) {
+      throw new Error("Site data is incomplete.");
+    }
+    return site;
+  } catch (error) {
+    throw new Error(error.message || "Unable to read site data.");
+  }
 };
 
 const boot = async () => {

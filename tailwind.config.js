@@ -22,8 +22,8 @@ module.exports = {
         glow: "0 0 46px rgba(240, 115, 36, 0.28)"
       },
       fontFamily: {
-        display: ["Sora", "Inter", "Arial", "sans-serif"],
-        body: ["Inter", "Arial", "sans-serif"]
+        display: ["Space Grotesk", "Manrope", "Arial", "sans-serif"],
+        body: ["Manrope", "Arial", "sans-serif"]
       },
       backgroundImage: {
         "industrial-grid":

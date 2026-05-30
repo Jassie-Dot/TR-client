@@ -354,10 +354,12 @@ const pickFields = (source = {}, keys = []) =>
   }, {});
 
 const getPublicSiteState = () => ({
-  brand: pickFields(siteState.brand, ["name", "shortName", "phone", "whatsapp", "location", "address"]),
+  brand: pickFields(siteState.brand, ["name", "shortName", "phone", "whatsapp", "email", "location", "address", "workingHours", "mapUrl"]),
   hero: pickFields(siteState.hero, ["eyebrow", "title", "text", "image", "chips"]),
   sections: siteState.sections,
   metrics: siteState.metrics,
+  whyChoose: siteState.whyChoose || [],
+  trustedBy: siteState.trustedBy || [],
   services: siteState.services,
   projects: siteState.projects,
   process: siteState.process,
@@ -387,11 +389,11 @@ const sanitize = (value) => String(value || "").trim().slice(0, 800);
 const createWhatsAppMessage = (inquiry) =>
   [
     "Hello TR Enterprises, I want a free quote.",
-    `Name: ${inquiry.name}`,
-    `Phone: ${inquiry.phone}`,
+    `Company: ${inquiry.companyName || inquiry.name}`,
+    `Contact: ${inquiry.contactNumber || inquiry.phone}`,
     inquiry.email ? `Email: ${inquiry.email}` : "",
-    `Service: ${inquiry.service}`,
-    inquiry.location ? `Location: ${inquiry.location}` : "",
+    `Work: ${inquiry.work || inquiry.service}`,
+    inquiry.projectLocation || inquiry.location ? `Location: ${inquiry.projectLocation || inquiry.location}` : "",
     inquiry.message ? `Message: ${inquiry.message}` : ""
   ]
     .filter(Boolean)
@@ -413,21 +415,29 @@ const saveInquiry = async (inquiry) => {
 const handleInquiry = async (req, res) => {
   try {
     const payload = await readJsonBody(req);
+    const companyName = sanitize(payload.companyName || payload.name);
+    const contactNumber = sanitize(payload.contactNumber || payload.phone);
+    const work = sanitize(payload.work || payload.service);
+    const projectLocation = sanitize(payload.projectLocation || payload.location);
     const inquiry = {
       id: crypto.randomUUID(),
-      name: sanitize(payload.name),
-      phone: sanitize(payload.phone),
+      companyName,
+      contactNumber,
       email: sanitize(payload.email),
-      service: sanitize(payload.service),
-      location: sanitize(payload.location),
+      work,
+      projectLocation,
       message: sanitize(payload.message),
+      name: companyName,
+      phone: contactNumber,
+      service: work,
+      location: projectLocation,
       createdAt: new Date().toISOString()
     };
 
-    if (!inquiry.name || !inquiry.phone || !inquiry.service) {
+    if (!inquiry.companyName || !inquiry.contactNumber || !inquiry.email || !inquiry.work) {
       sendJson(res, 400, {
         ok: false,
-        message: "Name, phone number, and service are required."
+        message: "Company name, contact number, email, and work requirement are required."
       });
       return;
     }

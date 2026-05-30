@@ -12,11 +12,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
     <script src="/theme-init.js?v=security-1"></script>
-    <link rel="stylesheet" href="/styles.css?v=premium-14" />
+    <link rel="stylesheet" href="/styles.css?v=font-refresh-1" />
     <link rel="stylesheet" href="/hero-overrides.css?v=premium-14" />
   </head>
   <body class="theme-body font-body selection:bg-signal-amber selection:text-coal-950">
@@ -34,11 +34,10 @@
         </a>
 
         <nav class="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+          <a class="nav-link" href="#about">About</a>
           <a class="nav-link" href="#services">Services</a>
           <a class="nav-link" href="#projects">Projects</a>
-          <a class="nav-link" href="#process">Process</a>
-          <a class="nav-link" href="#gallery">Gallery</a>
-          <a class="nav-link" href="#reviews">Reviews</a>
+          <a class="nav-link" href="#safety">Safety</a>
           <a class="nav-link" href="#contact">Contact</a>
           <a class="nav-link admin-link" href="/admin.html">Admin</a>
         </nav>
@@ -63,11 +62,10 @@
 
       <nav class="mobile-nav hidden px-4 py-4 lg:hidden" data-mobile-nav>
         <div class="mx-auto grid max-w-7xl gap-2">
+          <a class="mobile-link" href="#about">About</a>
           <a class="mobile-link" href="#services">Services</a>
           <a class="mobile-link" href="#projects">Projects</a>
-          <a class="mobile-link" href="#process">Process</a>
-          <a class="mobile-link" href="#gallery">Gallery</a>
-          <a class="mobile-link" href="#reviews">Reviews</a>
+          <a class="mobile-link" href="#safety">Safety</a>
           <a class="mobile-link" href="#contact">Contact</a>
           <a class="mobile-link" href="/admin.html">Admin</a>
         </div>
@@ -99,8 +97,8 @@
               Premium field teams for cleaner, safer sites.
             </p>
             <div class="hero-cta-row mt-8 flex flex-wrap gap-3">
-              <a class="btn-primary" href="#contact">Request Premium Quote</a>
-              <a class="btn-secondary" href="#services">Explore Services</a>
+              <a class="btn-primary" href="#contact">Get a Free Quote</a>
+              <a class="btn-secondary" href="https://wa.me/919310508703" target="_blank" rel="noopener" data-hero-whatsapp>WhatsApp Us</a>
             </div>
             <div class="mt-7 flex flex-wrap gap-3" data-hero-chips></div>
           </div>
@@ -142,14 +140,38 @@
 
       <section id="services" class="section-pad theme-section">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div class="grid gap-10 lg:grid-cols-[.38fr_.62fr] lg:items-end">
+          <div class="services-intro-grid">
             <div class="section-head reveal">
               <p class="eyebrow-dark" data-services-eyebrow>Services</p>
               <h2 class="section-title max-w-4xl" data-services-title>Precision site services.</h2>
+              <div class="services-summary-strip">
+                <span>6 service lines</span>
+                <span>25+ skilled workers</span>
+                <span>All-days service</span>
+              </div>
             </div>
-            <p class="theme-muted reveal text-lg font-medium leading-8" data-services-text>
-              Focused support for solar, plant, power, and crew work.
-            </p>
+            <div class="service-intro-panel reveal">
+              <p data-services-text>
+                Focused support for solar, plant, power, and crew work.
+              </p>
+              <div class="service-intro-points">
+                <div>
+                  <span>01</span>
+                  <strong>Clear scope</strong>
+                  <p>Six defined services, each linked to a detailed quote path.</p>
+                </div>
+                <div>
+                  <span>02</span>
+                  <strong>Safety ready</strong>
+                  <p>PPE, briefings, emergency response, and site supervision.</p>
+                </div>
+                <div>
+                  <span>03</span>
+                  <strong>Fast enquiry</strong>
+                  <p>Work type, location, and message go straight into the enquiry flow.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="mt-12 grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -158,6 +180,65 @@
               <div class="mt-6 grid gap-3" data-service-index></div>
             </aside>
             <div class="service-bento" data-services></div>
+          </div>
+
+          <div class="section-head reveal mt-16">
+            <p class="eyebrow-dark" data-service-details-eyebrow>Detailed services</p>
+            <h3 class="section-title max-w-4xl" data-service-details-title>What each service includes.</h3>
+            <p class="theme-muted mt-5 max-w-4xl text-lg font-medium leading-8" data-service-details-text>
+              Scope, process, safety equipment, benefits, and a direct quote action.
+            </p>
+          </div>
+          <div class="service-detail-list mt-10" data-service-details></div>
+        </div>
+      </section>
+
+      <section id="home-highlights" class="section-pad theme-section-alt">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="grid gap-10 lg:grid-cols-[.38fr_.62fr] lg:items-end">
+            <div class="section-head reveal">
+              <p class="eyebrow" data-why-eyebrow>Why choose TR</p>
+              <h2 class="section-title max-w-4xl" data-why-title>Reliable field teams with safety built in.</h2>
+            </div>
+            <p class="theme-muted reveal text-lg font-medium leading-8" data-why-text>
+              Safety training, emergency support, skilled workers, all-days availability, and modern methods.
+            </p>
+          </div>
+
+          <div class="metric-strip mt-12 grid overflow-hidden rounded-lg md:grid-cols-4" data-metric-strip></div>
+          <div class="info-grid mt-8" data-why-choose></div>
+
+          <div class="trusted-panel reveal mt-8">
+            <div>
+              <p class="eyebrow-dark" data-trusted-eyebrow>Trusted by</p>
+              <h3 data-trusted-title>Companies TR has worked with.</h3>
+              <p data-trusted-text>Hero Solar, Tata Solar, and Orina Power are highlighted as companies TR has worked with.</p>
+            </div>
+            <div class="trusted-logo-row" data-trusted-by></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section-pad theme-section">
+        <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[.42fr_.58fr] lg:px-8">
+          <div class="section-head reveal lg:sticky lg:top-28 lg:self-start">
+            <p class="eyebrow-dark" data-about-eyebrow>About TR</p>
+            <h2 class="section-title" data-about-title>A practical site-services team.</h2>
+            <p class="section-copy" data-about-text>
+              TR Enterprises supports solar, industrial, and plant teams with dependable workers and clear supervision.
+            </p>
+            <div class="director-note mt-8" data-about-director></div>
+          </div>
+          <div class="about-stack">
+            <article class="quality-card reveal">
+              <span data-about-team-title>Team structure</span>
+              <div class="team-grid mt-5" data-about-team></div>
+            </article>
+            <article class="quality-card reveal">
+              <span>Safety and quality commitment</span>
+              <p class="mt-4" data-about-commitment></p>
+            </article>
+            <div class="highlight-grid" data-about-highlights></div>
           </div>
         </div>
       </section>
@@ -171,7 +252,17 @@
               Clean snapshots from real site work.
             </p>
           </div>
-          <div class="case-rail" data-projects></div>
+          <div>
+            <div class="case-rail" data-projects></div>
+            <div class="trusted-panel reveal mt-8">
+              <div>
+                <p class="eyebrow-dark">Worked with</p>
+                <h3>Hero Solar, Tata Solar, and Orina Power.</h3>
+                <p>Company names are shown clearly for portfolio trust.</p>
+              </div>
+              <div class="trusted-logo-row" data-project-companies></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -214,6 +305,54 @@
         </div>
       </section>
 
+      <section id="safety" class="section-pad theme-section-alt">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="grid gap-10 lg:grid-cols-[.4fr_.6fr] lg:items-start">
+            <div class="section-head reveal">
+              <p class="eyebrow-dark" data-safety-eyebrow>Safety and compliance</p>
+              <h2 class="section-title" data-safety-title>Safety training, medical readiness, and PPE-led site work.</h2>
+              <p class="section-copy" data-safety-text>
+                Training, emergency response readiness, equipment discipline, and compliance-focused supervision.
+              </p>
+            </div>
+            <div class="safety-board reveal">
+              <article class="safety-card">
+                <span>Safety training programme</span>
+                <div class="tag-list mt-4" data-safety-training></div>
+              </article>
+              <article class="safety-card">
+                <span>Safety equipment used</span>
+                <div class="tag-list mt-4" data-safety-equipment></div>
+              </article>
+              <article class="safety-card">
+                <span>Emergency medical and doctor facility</span>
+                <p class="mt-4" data-safety-medical></p>
+              </article>
+              <article class="safety-card">
+                <span>Overall commitment</span>
+                <p class="mt-4" data-safety-commitment></p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-pad theme-section">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="cta-band reveal">
+            <div>
+              <p class="eyebrow" data-cta-eyebrow>Need a site team?</p>
+              <h2 data-cta-title>Share the requirement and get a free quote from TR.</h2>
+              <p data-cta-text>Tell us the service, location, and timeline. TR will respond quickly.</p>
+            </div>
+            <div class="cta-actions">
+              <a class="btn-primary" href="#contact" data-cta-button>Get a Free Quote</a>
+              <a class="btn-secondary" href="https://wa.me/919310508703" target="_blank" rel="noopener" data-cta-whatsapp>WhatsApp Us</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="contact" class="section-pad theme-section-alt relative overflow-hidden">
         <div class="absolute inset-x-0 top-0 h-32 bg-[var(--section-bg)]"></div>
         <div class="contact-shell relative mx-auto grid max-w-7xl gap-0 overflow-hidden rounded-lg shadow-premium lg:grid-cols-[.9fr_1.1fr]">
@@ -225,16 +364,28 @@
             </div>
             <div class="mt-8 grid gap-4">
               <a class="contact-tile" href="tel:+919310508703" data-contact-phone>
-                <span>Phone / WhatsApp</span>
+                <span>Phone</span>
                 <strong data-contact-phone-text>+91 9310508703</strong>
+              </a>
+              <a class="contact-tile" href="https://wa.me/919310508703" target="_blank" rel="noopener" data-contact-whatsapp>
+                <span>WhatsApp click-to-chat</span>
+                <strong data-contact-whatsapp-text>+91 9310508703</strong>
+              </a>
+              <a class="contact-tile" href="mailto:trenterpriies@gmail.com" data-contact-email>
+                <span>Email</span>
+                <strong data-contact-email-text>trenterpriies@gmail.com</strong>
               </a>
               <div class="contact-tile">
                 <span>Service base</span>
                 <strong data-contact-location>Delhi NCR</strong>
               </div>
-              <div class="contact-tile">
+              <a class="contact-tile" href="https://www.google.com/maps/search/?api=1&query=B-15%20Sharda%20Enclave%2C%20Shahbad%20Daulatpur%2C%20Delhi%20110042" target="_blank" rel="noopener" data-contact-map>
                 <span>Address</span>
                 <strong data-contact-address>B-15 Sharda Enclave, Shahbad Daulatpur, Delhi - 110042</strong>
+              </a>
+              <div class="contact-tile">
+                <span>Working days</span>
+                <strong data-contact-hours>All days available</strong>
               </div>
             </div>
           </div>
@@ -245,15 +396,15 @@
               <h3 class="mt-3 font-display text-3xl font-black tracking-normal" data-contact-form-title>Send your requirement</h3>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
-              <label class="field-label">Name<input class="field-input" name="name" placeholder="Your name" required /></label>
-              <label class="field-label">Phone<input class="field-input" name="phone" placeholder="Phone number" required /></label>
-              <label class="field-label sm:col-span-2">Email<input class="field-input" type="email" name="email" placeholder="Email address" /></label>
-              <label class="field-label sm:col-span-2">Service<select class="field-input" name="service" required data-service-select></select></label>
-              <label class="field-label sm:col-span-2">Project location<input class="field-input" name="location" placeholder="Site location" /></label>
+              <label class="field-label">Company Name<input class="field-input" name="companyName" placeholder="Company name" required /></label>
+              <label class="field-label">Contact Number<input class="field-input" name="contactNumber" placeholder="Contact number" required /></label>
+              <label class="field-label sm:col-span-2">Email<input class="field-input" type="email" name="email" placeholder="Email address" required /></label>
+              <label class="field-label sm:col-span-2">What Work Do You Want<select class="field-input" name="work" required data-service-select></select></label>
+              <label class="field-label sm:col-span-2">Project Location<input class="field-input" name="projectLocation" placeholder="Site location" /></label>
               <label class="field-label sm:col-span-2">Message<textarea class="field-input min-h-36 pt-3" name="message" placeholder="Site size, timeline, requirement"></textarea></label>
             </div>
             <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button class="btn-primary w-full sm:w-auto" type="submit" data-contact-submit>Submit Inquiry</button>
+              <button class="btn-primary w-full sm:w-auto" type="submit" data-contact-submit>Submit Enquiry</button>
               <a class="hidden font-black text-signal-orange" href="#" target="_blank" rel="noopener" data-whatsapp-result>Open WhatsApp</a>
             </div>
             <p class="mt-4 min-h-6 font-bold" data-form-note></p>
@@ -263,21 +414,36 @@
     </main>
 
     <footer class="theme-footer py-10">
-      <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div class="footer-grid mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.15fr_.85fr_.9fr] lg:px-8">
         <div>
           <a href="#home" class="flex items-center gap-3">
             <span class="grid h-10 w-10 place-items-center rounded-lg bg-brand-metal font-display text-xs font-black text-coal-950">TR</span>
             <span class="font-display font-extrabold">TR Enterprises</span>
           </a>
           <p class="mt-3 max-w-xl text-sm font-medium" data-footer-tagline>Premium solar, manpower, power, plant, and site services.</p>
+          <p class="mt-5 text-sm font-bold" data-footer-copyright>2026 TR Enterprises. All rights reserved.</p>
         </div>
-        <div class="text-sm font-bold" data-footer-copyright>2026 TR Enterprises. All rights reserved.</div>
+        <nav class="footer-panel" aria-label="Footer service links">
+          <h2>Services</h2>
+          <div class="footer-link-list" data-footer-services></div>
+        </nav>
+        <div class="footer-panel">
+          <h2>Contact</h2>
+          <div class="footer-contact-list">
+            <a href="tel:+919310508703" data-footer-phone>+91 9310508703</a>
+            <a href="https://wa.me/919310508703" target="_blank" rel="noopener" data-footer-whatsapp>WhatsApp TR</a>
+            <a href="mailto:trenterpriies@gmail.com" data-footer-email>trenterpriies@gmail.com</a>
+            <span data-footer-address>B-15 Sharda Enclave, Shahbad Daulatpur, Delhi - 110042</span>
+            <span data-footer-hours>All days available</span>
+          </div>
+        </div>
       </div>
     </footer>
 
     <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-3">
-      <a class="quick-action" href="https://wa.me/919310508703" target="_blank" rel="noopener" aria-label="Open WhatsApp" data-floating-whatsapp>WA</a>
-      <button class="quick-action hidden" type="button" aria-label="Back to top" data-to-top>^</button>
+      <a class="quick-action quick-action-wide" href="tel:+919310508703" aria-label="Call TR Enterprises" data-floating-call>Call</a>
+      <a class="quick-action quick-action-wide" href="https://wa.me/919310508703" target="_blank" rel="noopener" aria-label="Open WhatsApp" data-floating-whatsapp>WA</a>
+      <button class="quick-action quick-action-wide hidden" type="button" aria-label="Back to top" data-to-top>Top</button>
     </div>
 
     <div class="fixed inset-0 z-[80] hidden place-items-center bg-black/90 p-4" data-lightbox>

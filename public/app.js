@@ -18,6 +18,14 @@ const iconFor = (category = "") => {
   return "OPS";
 };
 
+const telHref = (phone = "") => `tel:${String(phone).replace(/[^\d+]/g, "")}`;
+
+const quoteMessage = (brand) =>
+  `Hello ${brand.name || "TR Enterprises"}, I want a free quote.`;
+
+const whatsappHref = (brand, message = quoteMessage(brand)) =>
+  `https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(message)}`;
+
 const setupScrollControls = () => {
   const progress = $("[data-scroll-progress]");
   const toTop = $("[data-to-top]");
@@ -163,8 +171,14 @@ const renderHero = ({ brand, hero, metrics, services = [] }) => {
     heroImage.src = hero.image;
   }
 
-  $("[data-phone-link]").href = `tel:${brand.phone.replace(/\s/g, "")}`;
-  $("[data-floating-whatsapp]").href = `https://wa.me/${brand.whatsapp}`;
+  $("[data-phone-link]").href = telHref(brand.phone);
+  const whatsAppQuote = whatsappHref(brand);
+  const floatingWhatsapp = $("[data-floating-whatsapp]");
+  const heroWhatsapp = $("[data-hero-whatsapp]");
+  const floatingCall = $("[data-floating-call]");
+  if (floatingWhatsapp) floatingWhatsapp.href = whatsAppQuote;
+  if (heroWhatsapp) heroWhatsapp.href = whatsAppQuote;
+  if (floatingCall) floatingCall.href = telHref(brand.phone);
 
   $("[data-hero-chips]").innerHTML = (hero.chips || [])
     .map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`)
@@ -233,6 +247,21 @@ const renderStaticContent = (sections = {}) => {
   setText("[data-services-title]", sections.services?.title);
   setText("[data-services-text]", sections.services?.text);
   setText("[data-services-index-label]", sections.services?.indexLabel);
+  setText("[data-service-details-eyebrow]", sections.serviceDetails?.eyebrow);
+  setText("[data-service-details-title]", sections.serviceDetails?.title);
+  setText("[data-service-details-text]", sections.serviceDetails?.text);
+  setText("[data-why-eyebrow]", sections.why?.eyebrow);
+  setText("[data-why-title]", sections.why?.title);
+  setText("[data-why-text]", sections.why?.text);
+  setText("[data-trusted-eyebrow]", sections.trusted?.eyebrow);
+  setText("[data-trusted-title]", sections.trusted?.title);
+  setText("[data-trusted-text]", sections.trusted?.text);
+  setText("[data-about-eyebrow]", sections.about?.eyebrow);
+  setText("[data-about-title]", sections.about?.title);
+  setText("[data-about-text]", sections.about?.text);
+  setText("[data-about-director]", sections.about?.directorNote);
+  setText("[data-about-team-title]", sections.about?.teamTitle);
+  setText("[data-about-commitment]", sections.about?.commitment);
   setText("[data-projects-eyebrow]", sections.projects?.eyebrow);
   setText("[data-projects-title]", sections.projects?.title);
   setText("[data-projects-text]", sections.projects?.text);
@@ -244,6 +273,16 @@ const renderStaticContent = (sections = {}) => {
   setText("[data-reviews-eyebrow]", sections.reviews?.eyebrow);
   setText("[data-reviews-title]", sections.reviews?.title);
   setText("[data-reviews-button]", sections.reviews?.button);
+  setText("[data-safety-eyebrow]", sections.safety?.eyebrow);
+  setText("[data-safety-title]", sections.safety?.title);
+  setText("[data-safety-text]", sections.safety?.text);
+  setText("[data-safety-medical]", sections.safety?.medical);
+  setText("[data-safety-commitment]", sections.safety?.commitment);
+  setText("[data-cta-eyebrow]", sections.cta?.eyebrow);
+  setText("[data-cta-title]", sections.cta?.title);
+  setText("[data-cta-text]", sections.cta?.text);
+  setText("[data-cta-button]", sections.cta?.button);
+  setText("[data-cta-whatsapp]", sections.cta?.whatsappButton);
   setText("[data-contact-eyebrow]", sections.contact?.eyebrow);
   setText("[data-contact-title]", sections.contact?.title);
   setText("[data-contact-form-eyebrow]", sections.contact?.formEyebrow);
@@ -253,13 +292,82 @@ const renderStaticContent = (sections = {}) => {
   setText("[data-footer-copyright]", sections.footer?.copyright);
 };
 
+const renderWhyChoose = ({ metrics = [], whyChoose = [], trustedBy = [] }) => {
+  const root = $("[data-why-choose]");
+  if (root) {
+    root.innerHTML = whyChoose
+      .map(
+        (item) => `
+          <article class="info-card reveal">
+            <span>${escapeHtml(item.title)}</span>
+            <p>${escapeHtml(item.text)}</p>
+          </article>
+        `
+      )
+      .join("");
+  }
+
+  const metricStrip = $("[data-metric-strip]");
+  if (metricStrip) {
+    metricStrip.innerHTML = metrics
+      .map(
+        (metric) => `
+          <div class="metric-cell border-b p-6 md:border-b-0 md:border-r last:border-r-0">
+            <strong class="block font-display text-3xl font-black">${escapeHtml(metric.value)}</strong>
+            <span class="metric-label mt-2 block text-sm font-black uppercase tracking-[.12em]">${escapeHtml(metric.label)}</span>
+          </div>
+        `
+      )
+      .join("");
+  }
+
+  const trustedMarkup = trustedBy
+    .map((company) => `<span class="trusted-logo">${escapeHtml(company)}</span>`)
+    .join("");
+
+  const trustedRoot = $("[data-trusted-by]");
+  const projectCompanies = $("[data-project-companies]");
+  if (trustedRoot) trustedRoot.innerHTML = trustedMarkup;
+  if (projectCompanies) projectCompanies.innerHTML = trustedMarkup;
+};
+
+const renderAbout = (about = {}) => {
+  const team = $("[data-about-team]");
+  if (team) {
+    team.innerHTML = (about.team || [])
+      .map(
+        (item) => `
+          <div class="team-card">
+            <strong>${escapeHtml(item.count)}</strong>
+            <span>${escapeHtml(item.role)}</span>
+          </div>
+        `
+      )
+      .join("");
+  }
+
+  const highlights = $("[data-about-highlights]");
+  if (highlights) {
+    highlights.innerHTML = (about.highlights || [])
+      .map(
+        (item) => `
+          <article class="highlight-card reveal">
+            <span>${escapeHtml(item.title)}</span>
+            <p>${escapeHtml(item.text)}</p>
+          </article>
+        `
+      )
+      .join("");
+  }
+};
+
 const renderServices = (services) => {
   const indexRoot = $("[data-service-index]");
   if (indexRoot) {
     indexRoot.innerHTML = services
       .map(
         (service, index) => `
-          <a class="service-index-link" href="#${escapeHtml(service.id)}">
+          <a class="service-index-link" href="#detail-${escapeHtml(service.id)}">
             <span>${String(index + 1).padStart(2, "0")}</span>
             <strong>${escapeHtml(service.title)}</strong>
           </a>
@@ -285,6 +393,52 @@ const renderServices = (services) => {
             <ul class="mt-5 grid gap-2">
               ${service.bullets.map((bullet) => `<li class="card-bullet flex gap-3 text-sm font-black"><span class="mt-2 h-2 w-2 rounded-sm bg-signal-green"></span>${escapeHtml(bullet)}</li>`).join("")}
             </ul>
+            <a class="service-card-link mt-6" href="#detail-${escapeHtml(service.id)}">View Details</a>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+};
+
+const listMarkup = (items = []) =>
+  items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+const renderServiceDetails = (services = []) => {
+  const root = $("[data-service-details]");
+  if (!root) return;
+
+  root.innerHTML = services
+    .map((service) => {
+      const detail = service.detail || {};
+      return `
+        <article class="service-detail-card reveal" id="detail-${escapeHtml(service.id)}">
+          <div class="service-detail-media">
+            <img src="${service.image}" alt="${escapeHtml(service.title)} service work" loading="lazy" />
+          </div>
+          <div class="service-detail-copy">
+            <span>${escapeHtml(service.category)}</span>
+            <h3>${escapeHtml(service.title)}</h3>
+            <p>${escapeHtml(detail.what || service.summary)}</p>
+            <div class="detail-columns">
+              <section>
+                <h4>Who it is for</h4>
+                <p>${escapeHtml(detail.for || "Companies needing dependable site support.")}</p>
+              </section>
+              <section>
+                <h4>Process followed</h4>
+                <ol>${listMarkup(detail.process || [])}</ol>
+              </section>
+              <section>
+                <h4>Safety equipment used</h4>
+                <ul>${listMarkup(detail.safety || [])}</ul>
+              </section>
+              <section>
+                <h4>Benefits</h4>
+                <ul>${listMarkup(detail.benefits || [])}</ul>
+              </section>
+            </div>
+            <a class="btn-primary mt-6" href="#contact">Request a Quote</a>
           </div>
         </article>
       `;
@@ -294,8 +448,15 @@ const renderServices = (services) => {
 
 const renderProjects = (projects) => {
   $("[data-projects]").innerHTML = projects
-    .map(
-      (project, index) => `
+    .map((project, index) => {
+      const details = [
+        ["Site", project.site],
+        ["Requirement", project.requirement],
+        ["Work done", project.workDone],
+        ["Result", project.result]
+      ].filter(([, value]) => value);
+
+      return `
         <article class="case-card reveal group">
           <div class="case-number">${String(index + 1).padStart(2, "0")}</div>
           <div class="case-image">
@@ -305,10 +466,13 @@ const renderProjects = (projects) => {
             <span>${escapeHtml(project.type)}</span>
             <h3>${escapeHtml(project.title)}</h3>
             <p>${escapeHtml(project.impact)}</p>
+            <div class="case-facts">
+              ${details.map(([label, value]) => `<div><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`).join("")}
+            </div>
           </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 };
 
@@ -347,6 +511,53 @@ const renderTestimonials = (testimonials) => {
       `
     )
     .join("");
+};
+
+const renderSafety = (safety = {}) => {
+  const training = $("[data-safety-training]");
+  const equipment = $("[data-safety-equipment]");
+  if (training) {
+    training.innerHTML = (safety.training || [])
+      .map((item) => `<span>${escapeHtml(item)}</span>`)
+      .join("");
+  }
+  if (equipment) {
+    equipment.innerHTML = (safety.equipment || [])
+      .map((item) => `<span>${escapeHtml(item)}</span>`)
+      .join("");
+  }
+};
+
+const renderCta = ({ brand, sections = {} }) => {
+  const ctaWhatsapp = $("[data-cta-whatsapp]");
+  if (ctaWhatsapp) ctaWhatsapp.href = whatsappHref(brand);
+};
+
+const renderFooter = ({ brand, services = [] }) => {
+  const serviceLinks = $("[data-footer-services]");
+  if (serviceLinks) {
+    serviceLinks.innerHTML = services
+      .map((service) => `<a href="#detail-${escapeHtml(service.id)}">${escapeHtml(service.title)}</a>`)
+      .join("");
+  }
+
+  const phone = $("[data-footer-phone]");
+  const whatsapp = $("[data-footer-whatsapp]");
+  const email = $("[data-footer-email]");
+  const address = $("[data-footer-address]");
+  const hours = $("[data-footer-hours]");
+
+  if (phone) {
+    phone.href = telHref(brand.phone);
+    phone.textContent = brand.phone;
+  }
+  if (whatsapp) whatsapp.href = whatsappHref(brand);
+  if (email) {
+    email.href = `mailto:${brand.email}`;
+    email.textContent = brand.email;
+  }
+  if (address) address.textContent = brand.address;
+  if (hours) hours.textContent = brand.workingHours || "All days available";
 };
 
 const setupGallery = (gallery) => {
@@ -393,14 +604,26 @@ const setupGallery = (gallery) => {
 };
 
 const setupContact = ({ brand, services }) => {
-  $("[data-contact-phone]").href = `tel:${brand.phone.replace(/\s/g, "")}`;
+  $("[data-contact-phone]").href = telHref(brand.phone);
   $("[data-contact-phone-text]").textContent = brand.phone;
+  const contactWhatsapp = $("[data-contact-whatsapp]");
+  const contactWhatsappText = $("[data-contact-whatsapp-text]");
+  const contactEmail = $("[data-contact-email]");
+  const contactEmailText = $("[data-contact-email-text]");
+  const contactHours = $("[data-contact-hours]");
+  const contactMap = $("[data-contact-map]");
+  if (contactWhatsapp) contactWhatsapp.href = whatsappHref(brand);
+  if (contactWhatsappText) contactWhatsappText.textContent = brand.phone;
+  if (contactEmail) contactEmail.href = `mailto:${brand.email}`;
+  if (contactEmailText) contactEmailText.textContent = brand.email;
+  if (contactHours) contactHours.textContent = brand.workingHours || "All days available";
+  if (contactMap && brand.mapUrl) contactMap.href = brand.mapUrl;
   $("[data-contact-location]").textContent = brand.location;
   $("[data-contact-address]").textContent = brand.address;
 
   const select = $("[data-service-select]");
   select.innerHTML = [
-    '<option value="">Select service</option>',
+    '<option value="">Select work type</option>',
     ...services.map((service) => `<option>${escapeHtml(service.title)}</option>`)
   ].join("");
 
@@ -428,7 +651,7 @@ const setupContact = ({ brand, services }) => {
         throw new Error(result.message || "Unable to submit inquiry.");
       }
 
-      note.textContent = "Saved. Continue on WhatsApp.";
+      note.textContent = "Enquiry saved. Continue on WhatsApp.";
       note.className = "mt-4 min-h-6 font-bold text-signal-green";
       whatsappResult.href = result.whatsappUrl;
       whatsappResult.classList.remove("hidden");
@@ -447,7 +670,7 @@ const setupTilt = () => {
 
   if (!canTilt) return;
 
-  $$(".service-feature-card, .service-mini-card, .case-card, .dispatch-card").forEach((card) => {
+  $$(".service-feature-card, .service-mini-card, .service-detail-card, .info-card, .quality-card, .highlight-card, .case-card, .dispatch-card, .safety-card").forEach((card) => {
     let frame = 0;
     let rect;
     let nextTransform = "";
@@ -502,10 +725,16 @@ const boot = async () => {
     const site = await loadSite();
     renderStaticContent(site.sections);
     renderHero(site);
+    renderWhyChoose(site);
+    renderAbout(site.sections.about);
     renderServices(site.services);
+    renderServiceDetails(site.services);
     renderProjects(site.projects);
     renderProcess(site.process);
     renderTestimonials(site.testimonials);
+    renderSafety(site.sections.safety);
+    renderCta(site);
+    renderFooter(site);
     setupGallery(site.gallery);
     setupContact(site);
     setupReveal();
